@@ -1,5 +1,5 @@
 import { Phone } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface PhoneCallSimulatorProps {
   friendName: string;
@@ -11,6 +11,8 @@ export function PhoneCallSimulator({ friendName, aiResponse, onEnd }: PhoneCallS
   const [callStatus, setCallStatus] = useState<'ringing' | 'connected' | 'talking'>('ringing');
   const [displayedText, setDisplayedText] = useState('');
   const [textIndex, setTextIndex] = useState(0);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const hasSpokenRef = useRef(false);
 
   useEffect(() => {
     const ringTimer = setTimeout(() => {
@@ -30,6 +32,35 @@ export function PhoneCallSimulator({ friendName, aiResponse, onEnd }: PhoneCallS
   }, [callStatus]);
 
   useEffect(() => {
+    if (callStatus === 'talking' && !hasSpokenRef.current && aiResponse) {
+      hasSpokenRef.current = true;
+
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(aiResponse);
+        utterance.rate = 0.9;
+        utterance.pitch = 1.0;
+        utterance.volume = 1.0;
+
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(voice =>
+          voice.name.includes('Google US English') ||
+          voice.name.includes('Microsoft David') ||
+          voice.name.includes('Samantha')
+        ) || voices[0];
+
+        if (preferredVoice) {
+          utterance.voice = preferredVoice;
+        }
+
+        utteranceRef.current = utterance;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+  }, [callStatus, aiResponse]);
+
+  useEffect(() => {
     if (callStatus === 'talking' && textIndex < aiResponse.length) {
       const timer = setTimeout(() => {
         setDisplayedText(aiResponse.slice(0, textIndex + 1));
@@ -38,6 +69,14 @@ export function PhoneCallSimulator({ friendName, aiResponse, onEnd }: PhoneCallS
       return () => clearTimeout(timer);
     }
   }, [callStatus, textIndex, aiResponse]);
+
+  useEffect(() => {
+    return () => {
+      if (utteranceRef.current) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">

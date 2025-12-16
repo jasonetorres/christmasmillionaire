@@ -4,15 +4,12 @@ import { supabase } from '../lib/supabase';
 import { GameState, TriviaQuestion } from '../types';
 import { Lifelines } from '../Components/Lifelines';
 import { QuestionDisplay } from '../Components/QuestionDisplay';
-import { PhoneCallSimulator } from '../Components/PhoneCallSimulator';
 
 const moneyLadder = ['$100', '$200', '$300', '$500', '$1,000', '$2,000', '$4,000', '$8,000', '$16,000', '$32,000', '$64,000', '$125,000', '$250,000', '$500,000', '$1,000,000'];
 
 export default function Host() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<TriviaQuestion | null>(null);
-  const [showPhoneCall, setShowPhoneCall] = useState(false);
-  const [aiResponse, setAiResponse] = useState('');
 
   useEffect(() => {
     loadGameState();
@@ -124,6 +121,7 @@ export default function Host() {
       removed_answers: [] as any,
       active_lifeline: null,
       friend_name: undefined,
+      ai_response: '',
       total_winnings: moneyLadder[nextLevel - 1],
     });
 
@@ -154,22 +152,14 @@ export default function Host() {
   const handlePhoneFriend = async () => {
     if (!gameState || !currentQuestion) return;
 
-    updateGameState({
-      lifeline_phone_used: true,
-      active_lifeline: 'phone',
-      friend_name: 'AI Friend',
-    });
-
     try {
       const anthropicApiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+      let aiText = '';
 
       if (!anthropicApiKey) {
-        setAiResponse("Hmm, I'm having trouble thinking right now. Based on the question, I would guess one of the middle options might be right.");
-        setShowPhoneCall(true);
-        return;
-      }
-
-      const prompt = `You are a helpful friend being called during a game show "Who Wants to Be a Millionaire". The contestant has called you for help with this question:
+        aiText = "Hmm, I'm having trouble thinking right now. Based on the question, I would guess one of the middle options might be right.";
+      } else {
+        const prompt = `You are a helpful friend being called during a game show "Who Wants to Be a Millionaire". The contestant has called you for help with this question:
 
 Question: ${currentQuestion.question}
 A) ${currentQuestion.answer_a}
@@ -181,31 +171,41 @@ The correct answer is ${currentQuestion.correct_answer}.
 
 Provide a natural, conversational response as if you're a friend on the phone. Be helpful but don't immediately give away the answer - think out loud a bit, show some reasoning, maybe express some uncertainty, then lean toward the correct answer. Keep it under 50 words and sound natural and spontaneous. Don't use any special formatting or markdown.`;
 
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": anthropicApiKey,
-          "anthropic-version": "2023-06-01",
-        },
-        body: JSON.stringify({
-          model: "claude-3-5-sonnet-20241022",
-          max_tokens: 150,
-          messages: [{
-            role: "user",
-            content: prompt,
-          }],
-        }),
-      });
+        const response = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": anthropicApiKey,
+            "anthropic-version": "2023-06-01",
+          },
+          body: JSON.stringify({
+            model: "claude-3-5-sonnet-20241022",
+            max_tokens: 150,
+            messages: [{
+              role: "user",
+              content: prompt,
+            }],
+          }),
+        });
 
-      const data = await response.json();
-      const aiText = data.content[0].text;
-      setAiResponse(aiText);
-      setShowPhoneCall(true);
+        const data = await response.json();
+        aiText = data.content[0].text;
+      }
+
+      updateGameState({
+        lifeline_phone_used: true,
+        active_lifeline: 'phone',
+        friend_name: 'AI Friend',
+        ai_response: aiText,
+      });
     } catch (error) {
       const fallbackResponse = `Hmm, let me think about this. Looking at the options, I'm pretty confident the answer is ${currentQuestion.correct_answer}. Yeah, I'd go with ${currentQuestion.correct_answer}.`;
-      setAiResponse(fallbackResponse);
-      setShowPhoneCall(true);
+      updateGameState({
+        lifeline_phone_used: true,
+        active_lifeline: 'phone',
+        friend_name: 'AI Friend',
+        ai_response: fallbackResponse,
+      });
     }
   };
 
@@ -221,12 +221,7 @@ Provide a natural, conversational response as if you're a friend on the phone. B
   };
 
   const endLifeline = () => {
-    updateGameState({ active_lifeline: null });
-  };
-
-  const handleEndPhoneCall = () => {
-    setShowPhoneCall(false);
-    setAiResponse('');
+    updateGameState({ active_lifeline: null, ai_response: '' });
   };
 
   if (!gameState || !currentQuestion) {
@@ -314,14 +309,6 @@ Provide a natural, conversational response as if you're a friend on the phone. B
           </div>
         </div>
       </div>
-
-      {showPhoneCall && (
-        <PhoneCallSimulator
-          friendName="AI Friend"
-          aiResponse={aiResponse}
-          onEnd={handleEndPhoneCall}
-        />
-      )}
     </div>
   );
 }

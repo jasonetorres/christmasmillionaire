@@ -4,6 +4,7 @@ import { TriviaQuestion, GameState } from '../types';
 import { MoneyLadder } from '../Components/MoneyLadder';
 import { QuestionDisplay } from '../Components/QuestionDisplay';
 import { QRCodeSVG } from 'qrcode.react';
+import { PhoneCallSimulator } from '../Components/PhoneCallSimulator';
 
 const Celebration = ({ isWin = false }: { isWin?: boolean }) => {
   const particles = Array.from({ length: isWin ? 100 : 50 }, (_, i) => ({
@@ -159,14 +160,6 @@ export default function Display() {
             disabled={true}
           />
 
-          {gameState.active_lifeline === 'phone' && (
-            <div className="mt-8 bg-green-900/50 border-2 border-green-500 p-6 rounded-lg text-center">
-              <h3 className="text-2xl font-bold text-white mb-2">📞 Phone a Friend</h3>
-              <p className="text-xl text-green-200">
-                Calling {gameState.friend_name || 'a friend'}...
-              </p>
-            </div>
-          )}
 
           {gameState.active_lifeline === 'audience' && (
             <div className="mt-8 bg-blue-900/50 border-2 border-blue-500 p-6 rounded-lg">
@@ -208,6 +201,14 @@ export default function Display() {
           />
         </div>
       </div>
+
+      {gameState.active_lifeline === 'phone' && gameState.ai_response && (
+        <PhoneCallSimulator
+          friendName={gameState.friend_name || 'AI Friend'}
+          aiResponse={gameState.ai_response}
+          onEnd={() => {}}
+        />
+      )}
     </div>
   );
 }
