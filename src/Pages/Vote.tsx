@@ -24,7 +24,7 @@ export default function Vote() {
     const { data } = await supabase
       .from('game_state')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('updated_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 
