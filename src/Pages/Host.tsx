@@ -4,12 +4,15 @@ import { supabase } from '../lib/supabase';
 import { GameState, TriviaQuestion } from '../types';
 import { Lifelines } from '../Components/Lifelines';
 import { QuestionDisplay } from '../Components/QuestionDisplay';
+import { PhoneCallSimulator } from '../Components/PhoneCallSimulator';
 
 const moneyLadder = ['$100', '$200', '$300', '$500', '$1,000', '$2,000', '$4,000', '$8,000', '$16,000', '$32,000', '$64,000', '$125,000', '$250,000', '$500,000', '$1,000,000'];
 
 export default function Host() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<TriviaQuestion | null>(null);
+  const [showPhoneCall, setShowPhoneCall] = useState(false);
+  const [aiResponse, setAiResponse] = useState('');
 
   useEffect(() => {
     loadGameState();
@@ -151,15 +154,6 @@ export default function Host() {
   const handlePhoneFriend = async () => {
     if (!gameState || !currentQuestion) return;
 
-    const phoneNumber = prompt('Enter phone number (format: +1234567890):');
-    if (!phoneNumber) return;
-
-    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-    if (!phoneRegex.test(phoneNumber)) {
-      alert('Please enter a valid phone number with country code (e.g., +1234567890)');
-      return;
-    }
-
     updateGameState({
       lifeline_phone_used: true,
       active_lifeline: 'phone',
@@ -167,49 +161,51 @@ export default function Host() {
     });
 
     try {
-      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/initiate-phone-friend`;
+      const anthropicApiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
 
-      const response = await fetch(apiUrl, {
-        method: 'POST',
+      if (!anthropicApiKey) {
+        setAiResponse("Hmm, I'm having trouble thinking right now. Based on the question, I would guess one of the middle options might be right.");
+        setShowPhoneCall(true);
+        return;
+      }
+
+      const prompt = `You are a helpful friend being called during a game show "Who Wants to Be a Millionaire". The contestant has called you for help with this question:
+
+Question: ${currentQuestion.question}
+A) ${currentQuestion.answer_a}
+B) ${currentQuestion.answer_b}
+C) ${currentQuestion.answer_c}
+D) ${currentQuestion.answer_d}
+
+The correct answer is ${currentQuestion.correct_answer}.
+
+Provide a natural, conversational response as if you're a friend on the phone. Be helpful but don't immediately give away the answer - think out loud a bit, show some reasoning, maybe express some uncertainty, then lean toward the correct answer. Keep it under 50 words and sound natural and spontaneous. Don't use any special formatting or markdown.`;
+
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
+          "x-api-key": anthropicApiKey,
+          "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify({
-          phoneNumber,
-          question: currentQuestion.question,
-          answerA: currentQuestion.answer_a,
-          answerB: currentQuestion.answer_b,
-          answerC: currentQuestion.answer_c,
-          answerD: currentQuestion.answer_d,
-          correctAnswer: currentQuestion.correct_answer,
+          model: "claude-3-5-sonnet-20241022",
+          max_tokens: 150,
+          messages: [{
+            role: "user",
+            content: prompt,
+          }],
         }),
       });
 
       const data = await response.json();
-
-      if (data.error) {
-        if (data.setupInstructions) {
-          alert(`Setup Required:\n\n${data.error}\n\n${data.setupInstructions}`);
-        } else {
-          alert(`Error: ${data.error}`);
-        }
-        updateGameState({
-          active_lifeline: null,
-          lifeline_phone_used: false,
-        });
-        return;
-      }
-
-      if (data.success) {
-        alert('Call initiated! Your AI friend is calling now...');
-      }
+      const aiText = data.content[0].text;
+      setAiResponse(aiText);
+      setShowPhoneCall(true);
     } catch (error) {
-      alert(`Failed to initiate call: ${error}`);
-      updateGameState({
-        active_lifeline: null,
-        lifeline_phone_used: false,
-      });
+      const fallbackResponse = `Hmm, let me think about this. Looking at the options, I'm pretty confident the answer is ${currentQuestion.correct_answer}. Yeah, I'd go with ${currentQuestion.correct_answer}.`;
+      setAiResponse(fallbackResponse);
+      setShowPhoneCall(true);
     }
   };
 
@@ -226,6 +222,11 @@ export default function Host() {
 
   const endLifeline = () => {
     updateGameState({ active_lifeline: null });
+  };
+
+  const handleEndPhoneCall = () => {
+    setShowPhoneCall(false);
+    setAiResponse('');
   };
 
   if (!gameState || !currentQuestion) {
@@ -313,6 +314,14 @@ export default function Host() {
           </div>
         </div>
       </div>
+
+      {showPhoneCall && (
+        <PhoneCallSimulator
+          friendName="AI Friend"
+          aiResponse={aiResponse}
+          onEnd={handleEndPhoneCall}
+        />
+      )}
     </div>
   );
 }
