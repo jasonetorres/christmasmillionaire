@@ -36,12 +36,26 @@ class GameState extends Model
         'removed_answers' => 'array',
     ];
 
+    /**
+     * Model-level defaults (NOT database defaults)
+     */
+    protected $attributes = [
+        'removed_answers' => '[]',
+        'current_level' => 1,
+        'game_status' => 'waiting',
+        'show_correct' => false,
+        'lifeline_fifty_fifty_used' => false,
+        'lifeline_phone_used' => false,
+        'lifeline_audience_used' => false,
+        'total_winnings' => '$0',
+    ];
+
     public function currentQuestion(): BelongsTo
     {
         return $this->belongsTo(TriviaQuestion::class, 'current_question_id');
     }
 
-    public static function current()
+    public static function current(): ?self
     {
         return static::first();
     }
