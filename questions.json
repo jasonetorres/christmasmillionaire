@@ -1,0 +1,212 @@
+[
+  {
+    "question": "In \"Home Alone\", where are the McCallisters going on vacation when they leave Kevin behind?",
+    "answer_a": "Florida",
+    "answer_b": "Paris",
+    "answer_c": "London",
+    "answer_d": "New York",
+    "correct_answer": "B",
+    "difficulty_level": 1,
+    "category": "Christmas Movies"
+  },
+  {
+    "question": "What is the name of the Grinch's dog?",
+    "answer_a": "Max",
+    "answer_b": "Rex",
+    "answer_c": "Buddy",
+    "answer_d": "Spot",
+    "correct_answer": "A",
+    "difficulty_level": 1,
+    "category": "Christmas Movies"
+  },
+  {
+    "question": "What color is Santa Claus's suit?",
+    "answer_a": "Blue",
+    "answer_b": "Green",
+    "answer_c": "Red",
+    "answer_d": "Yellow",
+    "correct_answer": "C",
+    "difficulty_level": 1,
+    "category": "Christmas Trivia"
+  },
+  {
+    "question": "In \"Elf\", what is the first rule of \"The Code of Elves\"?",
+    "answer_a": "Treat every day like Christmas",
+    "answer_b": "There's room for everyone on the nice list",
+    "answer_c": "The best way to spread Christmas cheer is singing loud for all to hear",
+    "answer_d": "Believe in the spirit of Christmas",
+    "correct_answer": "A",
+    "difficulty_level": 2,
+    "category": "Christmas Movies"
+  },
+  {
+    "question": "How many reindeer pull Santa's sleigh (including Rudolph)?",
+    "answer_a": "6",
+    "answer_b": "8",
+    "answer_c": "9",
+    "answer_d": "10",
+    "correct_answer": "C",
+    "difficulty_level": 2,
+    "category": "Christmas Trivia"
+  },
+  {
+    "question": "In \"The Polar Express\", what is the first gift of Christmas?",
+    "answer_a": "A train ticket",
+    "answer_b": "Hot chocolate",
+    "answer_c": "A bell from Santa's sleigh",
+    "answer_d": "A toy",
+    "correct_answer": "C",
+    "difficulty_level": 3,
+    "category": "Christmas Movies"
+  },
+  {
+    "question": "What country started the tradition of putting up a Christmas tree?",
+    "answer_a": "United States",
+    "answer_b": "England",
+    "answer_c": "Germany",
+    "answer_d": "France",
+    "correct_answer": "C",
+    "difficulty_level": 3,
+    "category": "Christmas History"
+  },
+  {
+    "question": "In \"A Christmas Carol\", how many ghosts visit Scrooge?",
+    "answer_a": "2",
+    "answer_b": "3",
+    "answer_c": "4",
+    "answer_d": "5",
+    "correct_answer": "C",
+    "difficulty_level": 4,
+    "category": "Christmas Literature"
+  },
+  {
+    "question": "What Christmas decoration was originally made from strands of silver?",
+    "answer_a": "Tinsel",
+    "answer_b": "Garland",
+    "answer_c": "Ornaments",
+    "answer_d": "Lights",
+    "correct_answer": "A",
+    "difficulty_level": 4,
+    "category": "Christmas History"
+  },
+  {
+    "question": "In \"Miracle on 34th Street\", what department store does Kris Kringle work for?",
+    "answer_a": "Macy's",
+    "answer_b": "Bloomingdale's",
+    "answer_c": "Sears",
+    "answer_d": "JCPenney",
+    "correct_answer": "A",
+    "difficulty_level": 5,
+    "category": "Christmas Movies"
+  },
+  {
+    "question": "What is the name of the town in \"How the Grinch Stole Christmas\"?",
+    "answer_a": "Bethlehem",
+    "answer_b": "Whoville",
+    "answer_c": "North Pole",
+    "answer_d": "Christmas Town",
+    "correct_answer": "B",
+    "difficulty_level": 5,
+    "category": "Christmas Movies"
+  },
+  {
+    "question": "In \"National Lampoon's Christmas Vacation\", what does Clark Griswold receive as a Christmas bonus?",
+    "answer_a": "A check",
+    "answer_b": "A gift card",
+    "answer_c": "A membership to the Jelly of the Month Club",
+    "answer_d": "Nothing",
+    "correct_answer": "C",
+    "difficulty_level": 6,
+    "category": "Christmas Movies"
+  },
+  {
+    "question": "What year was \"A Charlie Brown Christmas\" first broadcast?",
+    "answer_a": "1960",
+    "answer_b": "1965",
+    "answer_c": "1970",
+    "answer_d": "1975",
+    "correct_answer": "B",
+    "difficulty_level": 7,
+    "category": "Christmas TV"
+  },
+  {
+    "question": "In \"The Nightmare Before Christmas\", what is Jack Skellington's title?",
+    "answer_a": "Halloween King",
+    "answer_b": "Pumpkin King",
+    "answer_c": "Skeleton King",
+    "answer_d": "Nightmare King",
+    "correct_answer": "B",
+    "difficulty_level": 8,
+    "category": "Christmas Movies"
+  },
+  {
+    "question": "What popular Christmas song was actually written for Thanksgiving?",
+    "answer_a": "White Christmas",
+    "answer_b": "Jingle Bells",
+    "answer_c": "Frosty the Snowman",
+    "answer_d": "Rudolph the Red-Nosed Reindeer",
+    "correct_answer": "B",
+    "difficulty_level": 9,
+    "category": "Christmas Music"
+  },
+  {
+    "question": "In \"Die Hard\", what is the name of the building where the action takes place?",
+    "answer_a": "Trump Tower",
+    "answer_b": "Empire State Building",
+    "answer_c": "Nakatomi Plaza",
+    "answer_d": "Willis Tower",
+    "correct_answer": "C",
+    "difficulty_level": 10,
+    "category": "Christmas Movies"
+  },
+  {
+    "question": "What animated Christmas movie features Tom Hanks voicing multiple characters?",
+    "answer_a": "Arthur Christmas",
+    "answer_b": "The Polar Express",
+    "answer_c": "Rise of the Guardians",
+    "answer_d": "Klaus",
+    "correct_answer": "B",
+    "difficulty_level": 11,
+    "category": "Christmas Movies"
+  },
+  {
+    "question": "In what year was \"It's a Wonderful Life\" released?",
+    "answer_a": "1944",
+    "answer_b": "1946",
+    "answer_c": "1948",
+    "answer_d": "1950",
+    "correct_answer": "B",
+    "difficulty_level": 12,
+    "category": "Christmas Movies"
+  },
+  {
+    "question": "What is the name of George Bailey's guardian angel in \"It's a Wonderful Life\"?",
+    "answer_a": "Clarence",
+    "answer_b": "Gabriel",
+    "answer_c": "Michael",
+    "answer_d": "Joseph",
+    "correct_answer": "A",
+    "difficulty_level": 13,
+    "category": "Christmas Movies"
+  },
+  {
+    "question": "In \"A Christmas Story\", what does Ralphie want for Christmas?",
+    "answer_a": "A bicycle",
+    "answer_b": "A Red Ryder BB gun",
+    "answer_c": "A train set",
+    "answer_d": "A teddy bear",
+    "correct_answer": "B",
+    "difficulty_level": 14,
+    "category": "Christmas Movies"
+  },
+  {
+    "question": "In \"The Santa Clause\", what causes Scott Calvin to become Santa?",
+    "answer_a": "He wishes on a star",
+    "answer_b": "He puts on Santa's suit",
+    "answer_c": "He eats a magic cookie",
+    "answer_d": "He signs a contract",
+    "correct_answer": "B",
+    "difficulty_level": 15,
+    "category": "Christmas Movies"
+  }
+]
