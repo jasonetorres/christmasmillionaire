@@ -7,6 +7,17 @@ export default function Vote() {
 
   useEffect(() => {
     checkGameState();
+
+    const channel = supabase
+      .channel('game-state-vote')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'game_state' }, () => {
+        checkGameState();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const checkGameState = async () => {
@@ -37,10 +48,17 @@ export default function Vote() {
     }
   };
 
-  if (!gameState || gameState.game_status !== 'question_shown') {
+  if (!gameState || gameState.game_status !== 'question_shown' || gameState.active_lifeline !== 'audience') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 flex items-center justify-center">
-        <p className="text-white text-2xl">No active game</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 flex items-center justify-center p-8">
+        <div className="text-center">
+          <p className="text-white text-2xl mb-4">
+            {!gameState ? 'No active game' :
+             gameState.active_lifeline !== 'audience' ? 'Audience voting not active' :
+             'Waiting for question...'}
+          </p>
+          <p className="text-gray-400 text-lg">Wait for the host to activate Ask the Audience</p>
+        </div>
       </div>
     );
   }

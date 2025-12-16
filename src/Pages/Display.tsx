@@ -3,11 +3,13 @@ import { supabase } from '../lib/supabase';
 import { TriviaQuestion, GameState } from '../types';
 import { MoneyLadder } from '../Components/MoneyLadder';
 import { QuestionDisplay } from '../Components/QuestionDisplay';
+import { QRCodeSVG } from 'qrcode.react';
 
 export default function Display() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<TriviaQuestion | null>(null);
   const [audienceResults, setAudienceResults] = useState<any>(null);
+  const voteUrl = `${window.location.origin}/vote`;
 
   const loadGameState = useCallback(async () => {
     const { data } = await supabase
@@ -126,6 +128,14 @@ export default function Display() {
               <h3 className="text-2xl font-bold text-white text-center mb-4">
                 👥 Ask the Audience
               </h3>
+
+              <div className="flex justify-center mb-6">
+                <div className="bg-white p-4 rounded-lg text-center">
+                  <QRCodeSVG value={voteUrl} size={180} />
+                  <p className="text-sm font-bold text-gray-800 mt-2">Scan to Vote</p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-4 gap-4">
                 {['A', 'B', 'C', 'D'].map(answer => (
                   <div key={answer} className="text-center">
