@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('game_state', function (Blueprint $table) {
-            $table->uuid('id')->primary()->default(DB::raw('gen_random_uuid()'));
+            $table->uuid('id')->primary();
             $table->uuid('current_question_id')->nullable();
             $table->integer('current_level')->default(1);
             $table->string('game_status')->default('waiting');
