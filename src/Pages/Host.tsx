@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Play, SkipForward, RotateCcw } from 'lucide-react';
+import { Play, SkipForward, RotateCcw, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { GameState, TriviaQuestion } from '../types';
 import { Lifelines } from '../Components/Lifelines';
@@ -170,6 +170,10 @@ export default function Host() {
     });
   };
 
+  const endLifeline = () => {
+    updateGameState({ active_lifeline: null });
+  };
+
   if (!gameState || !currentQuestion) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 p-8 flex items-center justify-center">
@@ -232,6 +236,27 @@ export default function Host() {
             <SkipForward className="w-6 h-6" />
             Next Question
           </button>
+        </div>
+
+        {gameState.active_lifeline && (
+          <div className="mt-4">
+            <button
+              onClick={endLifeline}
+              className="w-full bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700 transition-all flex items-center justify-center gap-2"
+            >
+              <X className="w-5 h-5" />
+              End Lifeline
+            </button>
+          </div>
+        )}
+
+        <div className="mt-8 bg-green-900/50 border-2 border-green-500 rounded-lg p-6">
+          <div className="text-center">
+            <p className="text-green-300 text-sm font-semibold mb-2">CORRECT ANSWER</p>
+            <p className="text-green-100 text-3xl font-bold">
+              {currentQuestion.correct_answer}: {currentQuestion[`answer_${currentQuestion.correct_answer.toLowerCase()}` as keyof TriviaQuestion]}
+            </p>
+          </div>
         </div>
       </div>
     </div>
