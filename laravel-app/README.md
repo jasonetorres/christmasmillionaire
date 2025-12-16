@@ -1,59 +1,175 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Who Wants to Be a Millionaire - Christmas Edition
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A full-stack Laravel + React game show application with real-time features, built with Laravel, Inertia.js, React, and Supabase.
 
-## About Laravel
+## Tech Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Backend**: Laravel 12
+- **Frontend**: React + TypeScript + Inertia.js
+- **Database**: Supabase PostgreSQL
+- **Real-time**: Laravel Reverb (WebSockets)
+- **Styling**: Tailwind CSS
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Host control panel for managing the game
+- Display panel for streaming questions and answers
+- Audience voting system
+- Three lifelines: 50:50, Phone a Friend, Ask the Audience
+- Real-time synchronization between all panels
+- 15-level money ladder
+- Christmas-themed questions
 
-## Learning Laravel
+## Setup Instructions
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Prerequisites
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- PHP 8.2+
+- Composer
+- Node.js & npm
+- Supabase account
 
-## Laravel Sponsors
+### 1. Install Dependencies
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+cd laravel-app
 
-### Premium Partners
+composer install
+npm install
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 2. Configure Environment
 
-## Contributing
+Update the `.env` file with your Supabase credentials:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```env
+DB_CONNECTION=pgsql
+DB_HOST=your-supabase-db-host
+DB_PORT=6543
+DB_DATABASE=postgres
+DB_USERNAME=postgres.your-project-ref
+DB_PASSWORD=your-database-password
+```
 
-## Code of Conduct
+The Reverb configuration is already set up for local development.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 3. Generate Application Key
 
-## Security Vulnerabilities
+```bash
+php artisan key:generate
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 4. Run Migrations
+
+The Supabase migrations are in the `../supabase/migrations/` directory. You can apply them using the Supabase CLI or dashboard.
+
+For Laravel migrations (sessions, cache, etc.):
+
+```bash
+php artisan migrate
+```
+
+### 5. Seed Questions
+
+```bash
+php artisan db:seed
+```
+
+This will seed 21 Christmas-themed trivia questions across all 15 difficulty levels.
+
+### 6. Build Frontend Assets
+
+```bash
+npm run build
+```
+
+For development:
+
+```bash
+npm run dev
+```
+
+## Running the Application
+
+You need to run three separate processes:
+
+### Terminal 1: Laravel Server
+```bash
+php artisan serve
+```
+
+### Terminal 2: Laravel Reverb
+```bash
+php artisan reverb:start
+```
+
+### Terminal 3: Vite Dev Server (Development only)
+```bash
+npm run dev
+```
+
+Visit `http://localhost:8000`
+
+## Application Routes
+
+- `/` - Welcome page with navigation
+- `/host` - Host control panel
+- `/display` - Display panel for streaming
+- `/admin` - Admin panel
+- `/vote` - Audience voting page
+
+## API Endpoints
+
+### Game State
+- `GET /api/game-state` - Get current game state
+- `POST /api/game-state` - Update game state
+- `POST /api/game-state/start` - Start new game
+- `POST /api/game-state/next` - Load next question
+- `POST /api/game-state/reset` - Reset game
+
+### Questions
+- `GET /api/questions` - List all questions
+- `POST /api/questions` - Create question
+- `POST /api/questions/bulk` - Bulk create questions
+- `PUT /api/questions/{id}` - Update question
+- `DELETE /api/questions/{id}` - Delete question
+
+### Audience Votes
+- `POST /api/votes` - Submit vote
+- `GET /api/votes/results` - Get vote results
+- `POST /api/votes/clear` - Clear all votes
+
+## Project Structure
+
+```
+laravel-app/
+├── app/
+│   ├── Events/               # Broadcasting events
+│   ├── Http/
+│   │   ├── Controllers/      # Inertia page controllers
+│   │   └── Controllers/Api/  # API controllers
+│   └── Models/               # Eloquent models
+├── resources/
+│   ├── js/
+│   │   ├── Components/       # React components
+│   │   ├── Pages/            # Inertia pages
+│   │   └── types/            # TypeScript types
+│   └── views/                # Blade templates
+├── routes/
+│   ├── api.php               # API routes
+│   └── web.php               # Web routes
+└── database/
+    └── seeders/              # Database seeders
+```
+
+## Real-time Broadcasting
+
+The application uses Laravel Reverb for WebSocket broadcasting:
+
+- Game state changes broadcast to all connected clients
+- Audience votes update in real-time
+- Lifeline activation syncs across panels
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT
