@@ -5,6 +5,37 @@ import { MoneyLadder } from '../Components/MoneyLadder';
 import { QuestionDisplay } from '../Components/QuestionDisplay';
 import { QRCodeSVG } from 'qrcode.react';
 
+const Snowflakes = () => {
+  const snowflakes = Array.from({ length: 50 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    animationDuration: 5 + Math.random() * 10,
+    animationDelay: Math.random() * 5,
+    fontSize: 10 + Math.random() * 20,
+    opacity: 0.3 + Math.random() * 0.7,
+  }));
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+      {snowflakes.map((flake) => (
+        <div
+          key={flake.id}
+          className="absolute text-white animate-fall"
+          style={{
+            left: `${flake.left}%`,
+            animationDuration: `${flake.animationDuration}s`,
+            animationDelay: `${flake.animationDelay}s`,
+            fontSize: `${flake.fontSize}px`,
+            opacity: flake.opacity,
+          }}
+        >
+          ❄
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export default function Display() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<TriviaQuestion | null>(null);
@@ -87,9 +118,10 @@ export default function Display() {
   if (!gameState || !currentQuestion) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 flex items-center justify-center">
+        <Snowflakes />
         <div className="text-center">
           <h1 className="text-6xl font-bold text-yellow-400 mb-4">
-            Who Wants to Be a Millionaire?
+            Who Wants to Be a Christmasaire?
           </h1>
           <p className="text-white text-2xl mt-8">Waiting for game to start...</p>
         </div>
@@ -99,10 +131,11 @@ export default function Display() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 p-8">
+      <Snowflakes />
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
         <div className="lg:col-span-3">
           <h1 className="text-4xl font-bold text-yellow-400 text-center mb-8">
-            Who Wants to Be a Millionaire?
+            Who Wants to Be a Christmasaire?
           </h1>
 
           <QuestionDisplay

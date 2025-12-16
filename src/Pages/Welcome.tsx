@@ -6,10 +6,10 @@ export default function Welcome() {
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 flex items-center justify-center p-8">
       <div className="text-center max-w-4xl">
         <h1 className="text-6xl md:text-8xl font-bold text-yellow-400 mb-4 drop-shadow-lg">
-          Who Wants to Be a Millionaire?
+          Who Wants to Be a Christmasaire?
         </h1>
-        <h2 className="text-4xl md:text-5xl font-semibold text-red-400 mb-12">
-          🎄 Christmas Edition 🎅
+        <h2 className="text-3xl md:text-4xl font-semibold text-red-400 mb-12">
+          🎄 The Festive Quiz Show 🎅
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
