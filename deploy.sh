@@ -1,10 +1,12 @@
 #!/bin/bash
 
 # Laravel Cloud deployment script
-echo "Running migrations..."
-php artisan migrate --force
+echo "Checking database status..."
 
-echo "Seeding database..."
-php artisan db:seed --force
+# Skip migrations - database is managed by Supabase
+echo "Skipping migrations (database managed by Supabase)..."
+
+# Skip seeding - questions already loaded in Supabase
+echo "Skipping database seeding (data already in Supabase)..."
 
 echo "Deployment complete!"
