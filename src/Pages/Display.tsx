@@ -145,6 +145,27 @@ export default function Display() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 p-8">
       {isCorrectAnswer && <Celebration isWin={hasWon} />}
+
+      {gameState.game_status === 'game_over' && gameState.show_correct &&
+       gameState.selected_answer !== currentQuestion.correct_answer && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-gradient-to-br from-red-900 to-red-950 border-4 border-yellow-500 rounded-2xl p-12 max-w-2xl mx-4 text-center shadow-2xl">
+            <div className="text-6xl mb-6">😔</div>
+            <h2 className="text-5xl font-bold text-white mb-6">GAME OVER</h2>
+            <p className="text-2xl text-gray-200 mb-8">
+              Unfortunately, that was the wrong answer.
+            </p>
+            <div className="bg-black/40 rounded-xl p-6 mb-6">
+              <p className="text-xl text-gray-300 mb-2">You're taking home</p>
+              <p className="text-6xl font-bold text-yellow-400">{gameState.total_winnings}</p>
+            </div>
+            <p className="text-xl text-gray-300">
+              Thank you for playing!
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
         <div className="lg:col-span-3">
           <h1 className="text-4xl font-bold text-yellow-400 text-center mb-8">

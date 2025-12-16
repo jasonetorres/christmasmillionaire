@@ -84,7 +84,20 @@ export default function Host() {
   };
 
   const showCorrectAnswer = () => {
-    updateGameState({ show_correct: true });
+    if (!gameState || !currentQuestion) return;
+
+    const isCorrect = gameState.selected_answer === currentQuestion.correct_answer;
+    if (!isCorrect) {
+      const guaranteedMoney = gameState.current_level <= 5 ? '$0' :
+                              gameState.current_level <= 10 ? '$1,000' : '$32,000';
+      updateGameState({
+        show_correct: true,
+        game_status: 'game_over',
+        total_winnings: guaranteedMoney
+      });
+    } else {
+      updateGameState({ show_correct: true });
+    }
   };
 
   const nextQuestion = async () => {
@@ -262,20 +275,33 @@ export default function Host() {
         />
 
         <div className="flex gap-4 mt-8">
-          <button
-            onClick={showCorrectAnswer}
-            disabled={gameState.show_correct}
-            className="flex-1 bg-yellow-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-yellow-700 transition-all disabled:opacity-50"
-          >
-            Show Correct Answer
-          </button>
-          <button
-            onClick={nextQuestion}
-            className="flex-1 bg-blue-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
-          >
-            <SkipForward className="w-6 h-6" />
-            Next Question
-          </button>
+          {gameState.game_status !== 'game_over' && (
+            <>
+              <button
+                onClick={showCorrectAnswer}
+                disabled={gameState.show_correct}
+                className="flex-1 bg-yellow-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-yellow-700 transition-all disabled:opacity-50"
+              >
+                Show Correct Answer
+              </button>
+              <button
+                onClick={nextQuestion}
+                disabled={!gameState.show_correct}
+                className="flex-1 bg-blue-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <SkipForward className="w-6 h-6" />
+                Next Question
+              </button>
+            </>
+          )}
+          {gameState.game_status === 'game_over' && (
+            <button
+              onClick={resetGame}
+              className="flex-1 bg-red-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-red-700 transition-all"
+            >
+              End Game
+            </button>
+          )}
         </div>
 
         {gameState.active_lifeline && (
