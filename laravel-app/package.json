@@ -6,12 +6,24 @@
         "build": "vite build",
         "dev": "vite"
     },
+    "dependencies": {
+        "@inertiajs/react": "^2.0.0",
+        "laravel-echo": "^1.16.0",
+        "lucide-react": "^0.344.0",
+        "pusher-js": "^8.4.0",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1"
+    },
     "devDependencies": {
         "@tailwindcss/vite": "^4.0.0",
+        "@types/react": "^18.3.5",
+        "@types/react-dom": "^18.3.0",
+        "@vitejs/plugin-react": "^4.3.1",
         "axios": "^1.11.0",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^2.0.0",
         "tailwindcss": "^4.0.0",
+        "typescript": "^5.5.3",
         "vite": "^7.0.7"
     }
 }
