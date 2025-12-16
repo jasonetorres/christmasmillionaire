@@ -5,33 +5,42 @@ import { MoneyLadder } from '../Components/MoneyLadder';
 import { QuestionDisplay } from '../Components/QuestionDisplay';
 import { QRCodeSVG } from 'qrcode.react';
 
-const Snowflakes = () => {
-  const snowflakes = Array.from({ length: 50 }, (_, i) => ({
+const Celebration = ({ isWin = false }: { isWin?: boolean }) => {
+  const particles = Array.from({ length: isWin ? 100 : 50 }, (_, i) => ({
     id: i,
     left: Math.random() * 100,
-    animationDuration: 7.5 + Math.random() * 15,
-    animationDelay: Math.random() * 5,
-    fontSize: 15 + Math.random() * 30,
-    opacity: 0.2 + Math.random() * 0.4,
+    animationDuration: 2 + Math.random() * 3,
+    animationDelay: Math.random() * 0.5,
+    rotation: Math.random() * 360,
+    color: ['#FFD700', '#FFA500', '#FF4500', '#00FF00', '#0000FF', '#FF1493'][Math.floor(Math.random() * 6)],
   }));
 
   return (
     <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
-      {snowflakes.map((flake) => (
+      {particles.map((particle) => (
         <div
-          key={flake.id}
-          className="absolute text-white animate-fall"
+          key={particle.id}
+          className="absolute animate-confetti"
           style={{
-            left: `${flake.left}%`,
-            animationDuration: `${flake.animationDuration}s`,
-            animationDelay: `${flake.animationDelay}s`,
-            fontSize: `${flake.fontSize}px`,
-            opacity: flake.opacity,
+            left: `${particle.left}%`,
+            animationDuration: `${particle.animationDuration}s`,
+            animationDelay: `${particle.animationDelay}s`,
+            transform: `rotate(${particle.rotation}deg)`,
           }}
         >
-          ❄
+          <div
+            className="w-3 h-3 rounded-sm"
+            style={{ backgroundColor: particle.color }}
+          />
         </div>
       ))}
+      {isWin && (
+        <div className="absolute inset-0 flex items-center justify-center animate-pulse">
+          <div className="text-9xl font-bold text-yellow-400 drop-shadow-2xl">
+            WINNER!
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -118,7 +127,6 @@ export default function Display() {
   if (!gameState || !currentQuestion) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 flex items-center justify-center">
-        <Snowflakes />
         <div className="text-center">
           <h1 className="text-6xl font-bold text-yellow-400 mb-4">
             Who Wants to Be a Christmasaire?
@@ -129,9 +137,13 @@ export default function Display() {
     );
   }
 
+  const isCorrectAnswer = gameState.show_correct &&
+    gameState.selected_answer === currentQuestion.correct_answer;
+  const hasWon = gameState.current_level >= 15 && isCorrectAnswer;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 p-8">
-      <Snowflakes />
+      {isCorrectAnswer && <Celebration isWin={hasWon} />}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
         <div className="lg:col-span-3">
           <h1 className="text-4xl font-bold text-yellow-400 text-center mb-8">
