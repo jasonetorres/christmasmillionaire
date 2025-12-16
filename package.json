@@ -8,6 +8,7 @@
     },
     "dependencies": {
         "@inertiajs/react": "^2.0.0",
+        "@supabase/supabase-js": "^2.88.0",
         "laravel-echo": "^1.16.0",
         "lucide-react": "^0.344.0",
         "pusher-js": "^8.4.0",
