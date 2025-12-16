@@ -157,9 +157,9 @@ export default function Host() {
       let aiText = '';
 
       if (!anthropicApiKey) {
-        aiText = "Hmm, I'm having trouble thinking right now. Based on the question, I would guess one of the middle options might be right.";
+        aiText = "Ho ho ho! Well now, let me check my list here. I'm thinking it might be one of the middle options, my dear friend!";
       } else {
-        const prompt = `You are a helpful friend being called during a game show "Who Wants to Be a Millionaire". The contestant has called you for help with this question:
+        const prompt = `You are Santa Claus being called during a game show "Who Wants to Be a Christmasaire". The contestant has called you for help with this Christmas-themed question:
 
 Question: ${currentQuestion.question}
 A) ${currentQuestion.answer_a}
@@ -169,7 +169,7 @@ D) ${currentQuestion.answer_d}
 
 The correct answer is ${currentQuestion.correct_answer}.
 
-Provide a natural, conversational response as if you're a friend on the phone. Be helpful but don't immediately give away the answer - think out loud a bit, show some reasoning, maybe express some uncertainty, then lean toward the correct answer. Keep it under 50 words and sound natural and spontaneous. Don't use any special formatting or markdown.`;
+Respond as Santa Claus - jovial, warm, and festive. Start with "Ho ho ho!" or a Christmas greeting. Think out loud in Santa's character, show some reasoning, maybe express gentle uncertainty, then lean toward the correct answer. Keep it under 50 words, sound natural and jolly. Don't use any special formatting or markdown. Be encouraging and add Christmas spirit!`;
 
         const response = await fetch("https://api.anthropic.com/v1/messages", {
           method: "POST",
@@ -195,15 +195,15 @@ Provide a natural, conversational response as if you're a friend on the phone. B
       updateGameState({
         lifeline_phone_used: true,
         active_lifeline: 'phone',
-        friend_name: 'AI Friend',
+        friend_name: 'Santa Claus',
         ai_response: aiText,
       });
     } catch (error) {
-      const fallbackResponse = `Hmm, let me think about this. Looking at the options, I'm pretty confident the answer is ${currentQuestion.correct_answer}. Yeah, I'd go with ${currentQuestion.correct_answer}.`;
+      const fallbackResponse = `Ho ho ho! Let me think about this one. Looking at my list, I'm quite confident the answer is ${currentQuestion.correct_answer}. Yes indeed, I'd go with ${currentQuestion.correct_answer}. Merry Christmas!`;
       updateGameState({
         lifeline_phone_used: true,
         active_lifeline: 'phone',
-        friend_name: 'AI Friend',
+        friend_name: 'Santa Claus',
         ai_response: fallbackResponse,
       });
     }

@@ -39,15 +39,16 @@ export function PhoneCallSimulator({ friendName, aiResponse, onEnd }: PhoneCallS
         window.speechSynthesis.cancel();
 
         const utterance = new SpeechSynthesisUtterance(aiResponse);
-        utterance.rate = 0.9;
-        utterance.pitch = 1.0;
+        utterance.rate = 0.75;
+        utterance.pitch = 0.7;
         utterance.volume = 1.0;
 
         const voices = window.speechSynthesis.getVoices();
         const preferredVoice = voices.find(voice =>
-          voice.name.includes('Google US English') ||
           voice.name.includes('Microsoft David') ||
-          voice.name.includes('Samantha')
+          voice.name.includes('Google UK English Male') ||
+          voice.name.includes('Daniel') ||
+          voice.lang.startsWith('en')
         ) || voices[0];
 
         if (preferredVoice) {
@@ -112,12 +113,12 @@ export function PhoneCallSimulator({ friendName, aiResponse, onEnd }: PhoneCallS
             </p>
 
             {/* Avatar */}
-            <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
-              <Phone className="w-16 h-16 text-white" />
+            <div className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-600 to-green-600 flex items-center justify-center text-6xl">
+              🎅
             </div>
 
             <h2 className="text-white text-3xl font-semibold mb-2">{friendName}</h2>
-            <p className="text-white/60 text-sm">mobile</p>
+            <p className="text-white/60 text-sm">North Pole</p>
           </div>
 
           {/* AI Response Display */}
