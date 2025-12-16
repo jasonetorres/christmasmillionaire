@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import { TriviaQuestion, GameState } from '../types';
 import { MoneyLadder } from '../Components/MoneyLadder';
@@ -9,31 +9,7 @@ export default function Display() {
   const [currentQuestion, setCurrentQuestion] = useState<TriviaQuestion | null>(null);
   const [audienceResults, setAudienceResults] = useState<any>(null);
 
-  useEffect(() => {
-    loadGameState();
-
-    const gameStateChannel = supabase
-      .channel('game-state-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'game_state' }, handleGameStateChange)
-      .subscribe();
-
-    const votesChannel = supabase
-      .channel('votes-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'audience_votes' }, loadAudienceResults)
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(gameStateChannel);
-      supabase.removeChannel(votesChannel);
-    };
-  }, []);
-
-  const handleGameStateChange = async () => {
-    await loadGameState();
-    await loadAudienceResults();
-  };
-
-  const loadGameState = async () => {
+  const loadGameState = useCallback(async () => {
     const { data } = await supabase
       .from('game_state')
       .select('*')
@@ -51,38 +27,60 @@ export default function Display() {
           .maybeSingle();
         setCurrentQuestion(question);
       }
+
+      if (data.id) {
+        const { data: votes } = await supabase
+          .from('audience_votes')
+          .select('vote')
+          .eq('game_state_id', data.id);
+
+        if (votes && votes.length > 0) {
+          const counts = { A: 0, B: 0, C: 0, D: 0 };
+          votes.forEach((v: any) => counts[v.vote as keyof typeof counts]++);
+
+          const total = votes.length;
+          const results = {
+            A: { percentage: Math.round((counts.A / total) * 100) },
+            B: { percentage: Math.round((counts.B / total) * 100) },
+            C: { percentage: Math.round((counts.C / total) * 100) },
+            D: { percentage: Math.round((counts.D / total) * 100) },
+          };
+
+          setAudienceResults(results);
+        } else {
+          setAudienceResults(null);
+        }
+      }
     }
-  };
-
-  const loadAudienceResults = async () => {
-    if (!gameState?.id) return;
-
-    const { data: votes } = await supabase
-      .from('audience_votes')
-      .select('vote')
-      .eq('game_state_id', gameState.id);
-
-    if (votes && votes.length > 0) {
-      const counts = { A: 0, B: 0, C: 0, D: 0 };
-      votes.forEach((v: any) => counts[v.vote as keyof typeof counts]++);
-
-      const total = votes.length;
-      const results = {
-        A: { percentage: Math.round((counts.A / total) * 100) },
-        B: { percentage: Math.round((counts.B / total) * 100) },
-        C: { percentage: Math.round((counts.C / total) * 100) },
-        D: { percentage: Math.round((counts.D / total) * 100) },
-      };
-
-      setAudienceResults(results);
-    }
-  };
+  }, []);
 
   useEffect(() => {
-    if (gameState?.active_lifeline === 'audience') {
-      loadAudienceResults();
-    }
-  }, [gameState?.active_lifeline]);
+    loadGameState();
+
+    const gameStateChannel = supabase
+      .channel('game-state-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'game_state' }, () => {
+        loadGameState();
+      })
+      .subscribe();
+
+    const votesChannel = supabase
+      .channel('votes-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'audience_votes' }, () => {
+        loadGameState();
+      })
+      .subscribe();
+
+    const pollInterval = setInterval(() => {
+      loadGameState();
+    }, 2000);
+
+    return () => {
+      supabase.removeChannel(gameStateChannel);
+      supabase.removeChannel(votesChannel);
+      clearInterval(pollInterval);
+    };
+  }, [loadGameState]);
 
   if (!gameState || !currentQuestion) {
     return (
