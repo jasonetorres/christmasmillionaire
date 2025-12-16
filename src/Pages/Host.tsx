@@ -40,15 +40,14 @@ export default function Host() {
     await supabase.from('game_state').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     await supabase.from('trivia_questions').update({ is_used: false }).eq('is_used', true);
 
-    const { data: question } = await supabase
+    const { data: questions } = await supabase
       .from('trivia_questions')
       .select('*')
       .eq('difficulty_level', 1)
-      .eq('is_used', false)
-      .limit(1)
-      .maybeSingle();
+      .eq('is_used', false);
 
-    if (question) {
+    if (questions && questions.length > 0) {
+      const question = questions[Math.floor(Math.random() * questions.length)];
       await supabase.from('trivia_questions').update({ is_used: true }).eq('id', question.id);
 
       const { data: newGame } = await supabase
@@ -97,19 +96,18 @@ export default function Host() {
       return;
     }
 
-    const { data: question } = await supabase
+    const { data: questions } = await supabase
       .from('trivia_questions')
       .select('*')
       .eq('difficulty_level', nextLevel)
-      .eq('is_used', false)
-      .limit(1)
-      .maybeSingle();
+      .eq('is_used', false);
 
-    if (!question) {
+    if (!questions || questions.length === 0) {
       alert('No more questions available at this level');
       return;
     }
 
+    const question = questions[Math.floor(Math.random() * questions.length)];
     await supabase.from('trivia_questions').update({ is_used: true }).eq('id', question.id);
     await supabase.from('audience_votes').delete().eq('game_state_id', gameState.id);
 
