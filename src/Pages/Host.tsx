@@ -152,60 +152,52 @@ export default function Host() {
   const handlePhoneFriend = async () => {
     if (!gameState || !currentQuestion) return;
 
+    const phoneNumber = prompt("Enter your phone number (with country code, e.g., +1234567890):");
+
+    if (!phoneNumber) {
+      alert("Phone number is required to make a call!");
+      return;
+    }
+
     try {
-      const anthropicApiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
-      let aiText = '';
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-      if (!anthropicApiKey) {
-        aiText = "Ho ho ho! Well now, let me check my list here. I'm thinking it might be one of the middle options, my dear friend!";
-      } else {
-        const prompt = `You are Santa Claus being called during a game show "Who Wants to Be a Christmasaire". The contestant has called you for help with this Christmas-themed question:
+      const response = await fetch(`${supabaseUrl}/functions/v1/initiate-phone-friend`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${supabaseAnonKey}`,
+        },
+        body: JSON.stringify({
+          phoneNumber: phoneNumber,
+          question: currentQuestion.question,
+          answerA: currentQuestion.answer_a,
+          answerB: currentQuestion.answer_b,
+          answerC: currentQuestion.answer_c,
+          answerD: currentQuestion.answer_d,
+          correctAnswer: currentQuestion.correct_answer,
+        }),
+      });
 
-Question: ${currentQuestion.question}
-A) ${currentQuestion.answer_a}
-B) ${currentQuestion.answer_b}
-C) ${currentQuestion.answer_c}
-D) ${currentQuestion.answer_d}
+      const data = await response.json();
 
-The correct answer is ${currentQuestion.correct_answer}.
-
-Respond as Santa Claus - jovial, warm, and festive. Start with "Ho ho ho!" or a Christmas greeting. Think out loud in Santa's character, show some reasoning, maybe express gentle uncertainty, then lean toward the correct answer. Keep it under 50 words, sound natural and jolly. Don't use any special formatting or markdown. Be encouraging and add Christmas spirit!`;
-
-        const response = await fetch("https://api.anthropic.com/v1/messages", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": anthropicApiKey,
-            "anthropic-version": "2023-06-01",
-          },
-          body: JSON.stringify({
-            model: "claude-3-5-sonnet-20241022",
-            max_tokens: 150,
-            messages: [{
-              role: "user",
-              content: prompt,
-            }],
-          }),
-        });
-
-        const data = await response.json();
-        aiText = data.content[0].text;
+      if (!response.ok || data.error) {
+        alert(data.error || "Failed to initiate call. Make sure Twilio credentials are configured.");
+        return;
       }
 
       updateGameState({
         lifeline_phone_used: true,
         active_lifeline: 'phone',
         friend_name: 'Santa Claus',
-        ai_response: aiText,
+        ai_response: 'Santa is calling your phone now! Answer to hear his advice.',
       });
+
+      alert(`Santa is calling ${phoneNumber} now! Answer your phone to hear his advice.`);
     } catch (error) {
-      const fallbackResponse = `Ho ho ho! Let me think about this one. Looking at my list, I'm quite confident the answer is ${currentQuestion.correct_answer}. Yes indeed, I'd go with ${currentQuestion.correct_answer}. Merry Christmas!`;
-      updateGameState({
-        lifeline_phone_used: true,
-        active_lifeline: 'phone',
-        friend_name: 'Santa Claus',
-        ai_response: fallbackResponse,
-      });
+      console.error("Error initiating call:", error);
+      alert("Failed to initiate call. Please check console for details.");
     }
   };
 
