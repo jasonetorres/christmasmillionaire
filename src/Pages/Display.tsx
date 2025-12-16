@@ -141,16 +141,26 @@ export default function Display() {
   const isCorrectAnswer = gameState.show_correct &&
     gameState.selected_answer === currentQuestion.correct_answer;
   const hasWon = gameState.current_level >= 15 && isCorrectAnswer;
+  const isGameOver = gameState.game_status === 'game_over';
+  const isWrongAnswer = gameState.show_correct && gameState.selected_answer !== currentQuestion.correct_answer;
+
+  console.log('Display State:', {
+    game_status: gameState.game_status,
+    show_correct: gameState.show_correct,
+    selected_answer: gameState.selected_answer,
+    correct_answer: currentQuestion.correct_answer,
+    isGameOver,
+    isWrongAnswer,
+    shouldShowModal: isGameOver && isWrongAnswer
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 p-8">
       {isCorrectAnswer && <Celebration isWin={hasWon} />}
 
-      {gameState.game_status === 'game_over' && gameState.show_correct &&
-       gameState.selected_answer !== currentQuestion.correct_answer && (
+      {isGameOver && isWrongAnswer && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm">
           <div className="bg-gradient-to-br from-red-900 to-red-950 border-4 border-yellow-500 rounded-2xl p-12 max-w-2xl mx-4 text-center shadow-2xl">
-            <div className="text-6xl mb-6">😔</div>
             <h2 className="text-5xl font-bold text-white mb-6">GAME OVER</h2>
             <p className="text-2xl text-gray-200 mb-8">
               Unfortunately, that was the wrong answer.
