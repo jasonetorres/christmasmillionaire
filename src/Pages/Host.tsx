@@ -148,15 +148,69 @@ export default function Host() {
     });
   };
 
-  const handlePhoneFriend = () => {
-    const name = prompt('Enter friend name:');
-    if (!name || !gameState) return;
+  const handlePhoneFriend = async () => {
+    if (!gameState || !currentQuestion) return;
+
+    const phoneNumber = prompt('Enter phone number (format: +1234567890):');
+    if (!phoneNumber) return;
+
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+    if (!phoneRegex.test(phoneNumber)) {
+      alert('Please enter a valid phone number with country code (e.g., +1234567890)');
+      return;
+    }
 
     updateGameState({
       lifeline_phone_used: true,
       active_lifeline: 'phone',
-      friend_name: name,
+      friend_name: 'AI Friend',
     });
+
+    try {
+      const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/initiate-phone-friend`;
+
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          phoneNumber,
+          question: currentQuestion.question,
+          answerA: currentQuestion.answer_a,
+          answerB: currentQuestion.answer_b,
+          answerC: currentQuestion.answer_c,
+          answerD: currentQuestion.answer_d,
+          correctAnswer: currentQuestion.correct_answer,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        if (data.setupInstructions) {
+          alert(`Setup Required:\n\n${data.error}\n\n${data.setupInstructions}`);
+        } else {
+          alert(`Error: ${data.error}`);
+        }
+        updateGameState({
+          active_lifeline: null,
+          lifeline_phone_used: false,
+        });
+        return;
+      }
+
+      if (data.success) {
+        alert('Call initiated! Your AI friend is calling now...');
+      }
+    } catch (error) {
+      alert(`Failed to initiate call: ${error}`);
+      updateGameState({
+        active_lifeline: null,
+        lifeline_phone_used: false,
+      });
+    }
   };
 
   const handleAskAudience = async () => {
