@@ -69,34 +69,47 @@ export default function Host() {
   const updateGameState = async (updates: Partial<GameState>) => {
     if (!gameState) return;
 
-    const { data } = await supabase
+    console.log('Updating game state:', updates);
+    const { data, error } = await supabase
       .from('game_state')
       .update(updates)
       .eq('id', gameState.id)
       .select()
       .single();
 
+    if (error) {
+      console.error('Error updating game state:', error);
+      alert('Failed to update game state: ' + error.message);
+      return;
+    }
+
+    console.log('Game state updated successfully:', data);
     setGameState(data);
   };
 
-  const handleAnswerSelect = (answer: 'A' | 'B' | 'C' | 'D') => {
-    updateGameState({ selected_answer: answer });
+  const handleAnswerSelect = async (answer: 'A' | 'B' | 'C' | 'D') => {
+    await updateGameState({ selected_answer: answer });
   };
 
-  const showCorrectAnswer = () => {
+  const showCorrectAnswer = async () => {
     if (!gameState || !currentQuestion) return;
 
     const isCorrect = gameState.selected_answer === currentQuestion.correct_answer;
     if (!isCorrect) {
       const guaranteedMoney = gameState.current_level <= 5 ? '$0' :
                               gameState.current_level <= 10 ? '$1,000' : '$32,000';
-      updateGameState({
+      console.log('Wrong answer! Updating to game_over', {
+        show_correct: true,
+        game_status: 'game_over',
+        total_winnings: guaranteedMoney
+      });
+      await updateGameState({
         show_correct: true,
         game_status: 'game_over',
         total_winnings: guaranteedMoney
       });
     } else {
-      updateGameState({ show_correct: true });
+      await updateGameState({ show_correct: true });
     }
   };
 
@@ -154,7 +167,7 @@ export default function Host() {
     const others = ['A', 'B', 'C', 'D'].filter(a => a !== correct);
     const toRemove = others.sort(() => 0.5 - Math.random()).slice(0, 2);
 
-    updateGameState({
+    await updateGameState({
       lifeline_fifty_fifty_used: true,
       removed_answers: toRemove as any,
     });
@@ -198,7 +211,7 @@ export default function Host() {
         return;
       }
 
-      updateGameState({
+      await updateGameState({
         lifeline_phone_used: true,
         active_lifeline: 'phone',
         friend_name: 'Santa Claus',
@@ -217,14 +230,14 @@ export default function Host() {
 
     await supabase.from('audience_votes').delete().eq('game_state_id', gameState.id);
 
-    updateGameState({
+    await updateGameState({
       lifeline_audience_used: true,
       active_lifeline: 'audience',
     });
   };
 
-  const endLifeline = () => {
-    updateGameState({ active_lifeline: null, ai_response: '' });
+  const endLifeline = async () => {
+    await updateGameState({ active_lifeline: null, ai_response: '' });
   };
 
   if (!gameState || !currentQuestion) {
