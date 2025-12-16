@@ -36,8 +36,9 @@ class DatabaseSeeder extends Seeder
                 'answer_c' => $q['answer_c'],
                 'answer_d' => $q['answer_d'],
                 'correct_answer' => $q['correct_answer'],
-                'level' => (int) $q['difficulty_level'], // 👈 mapping
-                'category' => $q['category'] ?? null,
+                'difficulty_level' => (int) $q['difficulty_level'],
+                'category' => $q['category'] ?? 'General',
+                'is_used' => false,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];
