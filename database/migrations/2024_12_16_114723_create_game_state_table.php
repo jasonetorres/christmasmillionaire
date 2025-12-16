@@ -10,26 +10,27 @@ return new class extends Migration
     {
         Schema::create('game_state', function (Blueprint $table) {
             $table->uuid('id')->primary();
+
             $table->uuid('current_question_id')->nullable();
+
             $table->integer('current_level')->default(1);
             $table->string('game_status')->default('waiting');
+
             $table->string('selected_answer', 1)->nullable();
+
             $table->boolean('show_correct')->default(false);
             $table->boolean('lifeline_fifty_fifty_used')->default(false);
             $table->boolean('lifeline_phone_used')->default(false);
             $table->boolean('lifeline_audience_used')->default(false);
-            $table->json('removed_answers')->default('[]');
+
+            // ✅ FIX: NO default on JSON
+            $table->json('removed_answers')->nullable();
+
             $table->string('total_winnings')->default('$0');
             $table->string('active_lifeline')->nullable();
             $table->string('friend_name')->nullable();
+
             $table->timestamps();
-
-            $table->foreign('current_question_id')
-                  ->references('id')
-                  ->on('trivia_questions')
-                  ->nullOnDelete();
-
-            $table->index('updated_at');
         });
     }
 
