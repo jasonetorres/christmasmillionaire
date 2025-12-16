@@ -121,7 +121,7 @@ export default function Display() {
             </div>
           )}
 
-          {gameState.active_lifeline === 'audience' && audienceResults && (
+          {gameState.active_lifeline === 'audience' && (
             <div className="mt-8 bg-blue-900/50 border-2 border-blue-500 p-6 rounded-lg">
               <h3 className="text-2xl font-bold text-white text-center mb-4">
                 👥 Ask the Audience
@@ -130,12 +130,12 @@ export default function Display() {
                 {['A', 'B', 'C', 'D'].map(answer => (
                   <div key={answer} className="text-center">
                     <div className="text-3xl font-bold text-yellow-400 mb-2">
-                      {audienceResults[answer]?.percentage || 0}%
+                      {audienceResults?.[answer]?.percentage || 0}%
                     </div>
                     <div className="bg-blue-700 h-32 relative rounded-lg overflow-hidden">
                       <div
                         className="absolute bottom-0 w-full bg-yellow-400 transition-all duration-500"
-                        style={{ height: `${audienceResults[answer]?.percentage || 0}%` }}
+                        style={{ height: `${audienceResults?.[answer]?.percentage || 0}%` }}
                       />
                     </div>
                     <div className="text-xl font-bold text-white mt-2">{answer}</div>
