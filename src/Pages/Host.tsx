@@ -279,8 +279,8 @@ export default function Host() {
             <>
               <button
                 onClick={showCorrectAnswer}
-                disabled={gameState.show_correct}
-                className="flex-1 bg-yellow-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-yellow-700 transition-all disabled:opacity-50"
+                disabled={!gameState.selected_answer || gameState.show_correct}
+                className="flex-1 bg-yellow-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-yellow-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Show Correct Answer
               </button>
