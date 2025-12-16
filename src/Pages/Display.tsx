@@ -206,7 +206,14 @@ export default function Display() {
         <PhoneCallSimulator
           friendName={gameState.friend_name || 'AI Friend'}
           aiResponse={gameState.ai_response}
-          onEnd={() => {}}
+          onEnd={async () => {
+            if (gameState?.id) {
+              await supabase
+                .from('game_state')
+                .update({ active_lifeline: null, ai_response: '' })
+                .eq('id', gameState.id);
+            }
+          }}
         />
       )}
     </div>

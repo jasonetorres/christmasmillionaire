@@ -191,7 +191,7 @@ export default function Host() {
         lifeline_phone_used: true,
         active_lifeline: 'phone',
         friend_name: 'Santa Claus',
-        ai_response: 'Santa is calling your phone now! Answer to hear his advice.',
+        ai_response: data.aiResponse || 'Santa is calling your phone now! Answer to hear his advice.',
       });
 
       alert(`Santa is calling ${phoneNumber} now! Answer your phone to hear his advice.`);

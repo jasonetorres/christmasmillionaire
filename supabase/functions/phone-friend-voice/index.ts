@@ -97,9 +97,9 @@ Deno.serve(async (req: Request) => {
     }
 
     const questionData = JSON.parse(decodeURIComponent(questionDataParam));
-    const { question, answerA, answerB, answerC, answerD, correctAnswer } = questionData;
+    const { question, answerA, answerB, answerC, answerD, correctAnswer, aiResponse: preGeneratedResponse } = questionData;
 
-    const aiResponse = await getAIResponse(question, answerA, answerB, answerC, answerD, correctAnswer);
+    const aiResponse = preGeneratedResponse || await getAIResponse(question, answerA, answerB, answerC, answerD, correctAnswer);
 
     const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
