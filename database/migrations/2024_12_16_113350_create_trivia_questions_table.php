@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('category')->default('General');
             $table->boolean('is_used')->default(false);
             $table->timestamps();
-
             $table->index('difficulty_level');
             $table->index('is_used');
             $table->index(['difficulty_level', 'is_used']);
