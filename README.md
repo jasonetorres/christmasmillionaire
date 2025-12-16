@@ -1,173 +1,84 @@
 # Who Wants to Be a Millionaire - Christmas Edition
 
-A full-stack Laravel + React game show application with real-time features, built with Laravel, Inertia.js, React, and Supabase.
-
-## Tech Stack
-
-- **Backend**: Laravel 12
-- **Frontend**: React + TypeScript + Inertia.js
-- **Database**: Supabase PostgreSQL
-- **Real-time**: Laravel Reverb (WebSockets)
-- **Styling**: Tailwind CSS
+A real-time trivia game built with React, Supabase, and Tailwind CSS.
 
 ## Features
 
-- Host control panel for managing the game
-- Display panel for streaming questions and answers
-- Audience voting system
-- Three lifelines: 50:50, Phone a Friend, Ask the Audience
-- Real-time synchronization between all panels
-- 15-level money ladder
-- Christmas-themed questions
+- **Host Panel**: Control the game, manage lifelines, show answers
+- **Display Panel**: Big screen display with real-time updates
+- **Audience Voting**: Allow audience participation with live polls
+- **Lifelines**: 50/50, Phone a Friend, Ask the Audience
+- **Real-time Updates**: Powered by Supabase Realtime
+- **1,092 Questions**: Across 15 difficulty levels
 
-## Setup Instructions
+## Tech Stack
 
-### Prerequisites
+- React 18 with TypeScript
+- Supabase (Database + Realtime)
+- Tailwind CSS
+- Vite
+- React Router
 
-- PHP 8.2+
-- Composer
-- Node.js & npm
-- Supabase account
+## Setup
 
-### 1. Install Dependencies
+### 1. Environment Variables
 
-```bash
-composer install
-npm install
-```
-
-### 2. Configure Environment
-
-Update the `.env` file with your Supabase credentials:
+Create a `.env` file with:
 
 ```env
-DB_CONNECTION=pgsql
-DB_HOST=your-supabase-db-host
-DB_PORT=6543
-DB_DATABASE=postgres
-DB_USERNAME=postgres.your-project-ref
-DB_PASSWORD=your-database-password
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-The Reverb configuration is already set up for local development.
+### 2. Database
 
-### 3. Generate Application Key
+The Supabase database is already set up with:
+- 1,092 trivia questions (15 difficulty levels)
+- Game state management tables
+- Audience voting tables
+- Real-time subscriptions enabled
+
+### 3. Install & Run
 
 ```bash
-php artisan key:generate
+npm install
+npm run dev
 ```
 
-### 4. Run Migrations
-
-The Supabase migrations are in the `supabase/migrations/` directory. You can apply them using the Supabase CLI or dashboard.
-
-For Laravel migrations (sessions, cache, etc.):
-
-```bash
-php artisan migrate
-```
-
-### 5. Seed Questions
-
-```bash
-php artisan db:seed
-```
-
-This will seed 21 Christmas-themed trivia questions across all 15 difficulty levels.
-
-### 6. Build Frontend Assets
+### 4. Build
 
 ```bash
 npm run build
 ```
 
-For development:
+## Deploy to Netlify
 
-```bash
-npm run dev
-```
+1. Push your code to GitHub
+2. Connect your repo to Netlify
+3. Add environment variables in Netlify dashboard:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+4. Deploy!
 
-## Running the Application
+Build settings are configured in `netlify.toml`:
+- Build command: `npm run build`
+- Publish directory: `dist`
 
-You need to run three separate processes:
+## How to Play
 
-### Terminal 1: Laravel Server
-```bash
-php artisan serve
-```
+1. Open **/host** on your phone or tablet
+2. Open **/display** on the TV/projector
+3. Share **/vote** link with the audience for polls
+4. Start a new game and have fun!
 
-### Terminal 2: Laravel Reverb
-```bash
-php artisan reverb:start
-```
+## Game Flow
 
-### Terminal 3: Vite Dev Server (Development only)
-```bash
-npm run dev
-```
-
-Visit `http://localhost:8000`
-
-## Application Routes
-
-- `/` - Welcome page with navigation
-- `/host` - Host control panel
-- `/display` - Display panel for streaming
-- `/admin` - Admin panel
-- `/vote` - Audience voting page
-
-## API Endpoints
-
-### Game State
-- `GET /api/game-state` - Get current game state
-- `POST /api/game-state` - Update game state
-- `POST /api/game-state/start` - Start new game
-- `POST /api/game-state/next` - Load next question
-- `POST /api/game-state/reset` - Reset game
-
-### Questions
-- `GET /api/questions` - List all questions
-- `POST /api/questions` - Create question
-- `POST /api/questions/bulk` - Bulk create questions
-- `PUT /api/questions/{id}` - Update question
-- `DELETE /api/questions/{id}` - Delete question
-
-### Audience Votes
-- `POST /api/votes` - Submit vote
-- `GET /api/votes/results` - Get vote results
-- `POST /api/votes/clear` - Clear all votes
-
-## Project Structure
-
-```
-├── app/
-│   ├── Events/               # Broadcasting events
-│   ├── Http/
-│   │   ├── Controllers/      # Inertia page controllers
-│   │   └── Controllers/Api/  # API controllers
-│   └── Models/               # Eloquent models
-├── resources/
-│   ├── js/
-│   │   ├── Components/       # React components
-│   │   ├── Pages/            # Inertia pages
-│   │   └── types/            # TypeScript types
-│   └── views/                # Blade templates
-├── routes/
-│   ├── api.php               # API routes
-│   └── web.php               # Web routes
-├── database/
-│   └── seeders/              # Database seeders
-└── supabase/
-    └── migrations/           # Supabase database migrations
-```
-
-## Real-time Broadcasting
-
-The application uses Laravel Reverb for WebSocket broadcasting:
-
-- Game state changes broadcast to all connected clients
-- Audience votes update in real-time
-- Lifeline activation syncs across panels
+1. Host starts new game
+2. Questions progress from level 1 to 15
+3. Host can use lifelines (50/50, Phone Friend, Ask Audience)
+4. Host selects answer and shows correct answer
+5. Move to next question when ready
+6. Win $1,000,000 by reaching level 15!
 
 ## License
 
