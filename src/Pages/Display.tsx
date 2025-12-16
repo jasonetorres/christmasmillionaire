@@ -9,10 +9,10 @@ const Snowflakes = () => {
   const snowflakes = Array.from({ length: 50 }, (_, i) => ({
     id: i,
     left: Math.random() * 100,
-    animationDuration: 5 + Math.random() * 10,
+    animationDuration: 7.5 + Math.random() * 15,
     animationDelay: Math.random() * 5,
-    fontSize: 10 + Math.random() * 20,
-    opacity: 0.3 + Math.random() * 0.7,
+    fontSize: 15 + Math.random() * 30,
+    opacity: 0.2 + Math.random() * 0.4,
   }));
 
   return (
