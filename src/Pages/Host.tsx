@@ -176,7 +176,7 @@ export default function Host() {
     });
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/initiate-phone-friend`, {
+      const response = await fetch("https://pvpdtmxcxjcogjgwlugz.supabase.co/functions/v1/initiate-phone-friend", {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
