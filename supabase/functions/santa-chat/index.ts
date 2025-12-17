@@ -62,8 +62,8 @@ Remember: You're the REAL Santa answering your phone at the North Pole - knowled
     const questionContext = `Question: ${question}\nA: ${answerA}\nB: ${answerB}\nC: ${answerC}\nD: ${answerD}`;
 
     let userPrompt;
-    if (message === 'Hi Santa! Thanks for taking my call!') {
-      userPrompt = `[Phone rings and Santa answers] Contestant: "Hi Santa! I need help with this question: ${questionContext}\n\nWhat do you think the answer is?"`;
+    if (message === '[Phone rings and Santa answers]') {
+      userPrompt = `[Phone rings] Answer the phone warmly and greet the caller. Keep it short (1-2 sentences) - just a friendly hello. DON'T mention the question yet - let them explain what they need.`;
     } else {
       userPrompt = `Contestant says: "${message}"\n\n${questionContext}\n\nPlease respond naturally to what they said and help them with the question.`;
     }

@@ -93,7 +93,7 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              message: 'Hi Santa! Thanks for taking my call!',
+              message: '[Phone rings and Santa answers]',
               question: questionData.question,
               answerA: questionData.answerA,
               answerB: questionData.answerB,
