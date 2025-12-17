@@ -4,14 +4,12 @@ import { supabase } from '../lib/supabase';
 import { GameState, TriviaQuestion } from '../types';
 import { Lifelines } from '../Components/Lifelines';
 import { QuestionDisplay } from '../Components/QuestionDisplay';
-import { VoiceChat } from '../Components/VoiceChat';
 
 const moneyLadder = ['$100', '$200', '$300', '$500', '$1,000', '$2,000', '$4,000', '$8,000', '$16,000', '$32,000', '$64,000', '$125,000', '$250,000', '$500,000', '$1,000,000'];
 
 export default function Host() {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState<TriviaQuestion | null>(null);
-  const [isSimulatingCall, setIsSimulatingCall] = useState(false);
 
   useEffect(() => {
     loadGameState();
@@ -175,8 +173,6 @@ export default function Host() {
       active_lifeline: 'phone',
       friend_name: 'Santa Claus',
     });
-
-    setIsSimulatingCall(true);
   };
 
   const handleAskAudience = async () => {
@@ -291,24 +287,6 @@ export default function Host() {
             </p>
           </div>
         </div>
-
-        {isSimulatingCall && (
-          <VoiceChat
-            friendName="Santa Claus"
-            questionData={{
-              question: currentQuestion.question,
-              answerA: currentQuestion.answer_a,
-              answerB: currentQuestion.answer_b,
-              answerC: currentQuestion.answer_c,
-              answerD: currentQuestion.answer_d,
-              correctAnswer: currentQuestion.correct_answer,
-            }}
-            onEnd={() => {
-              setIsSimulatingCall(false);
-              endLifeline();
-            }}
-          />
-        )}
       </div>
     </div>
   );
