@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Phone, Mic, MicOff } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface PhoneCallScreenProps {
   questionData: {
@@ -80,11 +81,23 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
 
           const data = await response.json();
           if (data.response && data.audio) {
-            const audioData = {
-              audio: data.audio,
-              timestamp: Date.now()
-            };
-            localStorage.setItem('santa_audio', JSON.stringify(audioData));
+            // Update game_state with audio data for display to pick up
+            const { data: gameStateData } = await supabase
+              .from('game_state')
+              .select('id')
+              .order('updated_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+
+            if (gameStateData) {
+              await supabase
+                .from('game_state')
+                .update({
+                  santa_audio_data: data.audio,
+                  santa_audio_timestamp: Date.now()
+                })
+                .eq('id', gameStateData.id);
+            }
           }
         } catch (error) {
           console.error('Error:', error);
@@ -125,13 +138,23 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
 
         const data = await response.json();
         if (data.response && data.audio) {
-          // Store audio in a way the display can access it
-          const audioData = {
-            audio: data.audio,
-            timestamp: Date.now()
-          };
-          // We'll use localStorage for quick sync between host and display
-          localStorage.setItem('santa_audio', JSON.stringify(audioData));
+          // Update game_state with audio data for display to pick up
+          const { data: gameStateData } = await supabase
+            .from('game_state')
+            .select('id')
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (gameStateData) {
+            await supabase
+              .from('game_state')
+              .update({
+                santa_audio_data: data.audio,
+                santa_audio_timestamp: Date.now()
+              })
+              .eq('id', gameStateData.id);
+          }
         }
       } catch (error) {
         console.error('Error:', error);
@@ -198,47 +221,29 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
       setCallDuration(prev => prev + 1);
     }, 1000);
 
-    // Listen for audio updates from localStorage
-    let lastTimestamp = 0;
-    const checkForAudio = () => {
-      const audioData = localStorage.getItem('santa_audio');
-      if (audioData) {
-        try {
-          const parsed = JSON.parse(audioData);
-          if (parsed.timestamp > lastTimestamp) {
-            lastTimestamp = parsed.timestamp;
-            playAudio(parsed.audio);
+    let lastAudioTimestamp = 0;
+
+    // Listen for audio updates from game_state
+    const channel = supabase
+      .channel('santa-audio')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'game_state'
+      }, (payload) => {
+        const newData = payload.new as any;
+        if (newData.santa_audio_data && newData.santa_audio_timestamp) {
+          if (newData.santa_audio_timestamp > lastAudioTimestamp) {
+            lastAudioTimestamp = newData.santa_audio_timestamp;
+            playAudio(newData.santa_audio_data);
           }
-        } catch (error) {
-          console.error('Error parsing audio data:', error);
         }
-      }
-    };
-
-    // Check for audio every 500ms
-    const audioCheckInterval = setInterval(checkForAudio, 500);
-
-    // Also listen for storage events (for cross-tab communication)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'santa_audio' && e.newValue) {
-        try {
-          const parsed = JSON.parse(e.newValue);
-          if (parsed.timestamp > lastTimestamp) {
-            lastTimestamp = parsed.timestamp;
-            playAudio(parsed.audio);
-          }
-        } catch (error) {
-          console.error('Error parsing audio data:', error);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
+      })
+      .subscribe();
 
     return () => {
       clearInterval(timer);
-      clearInterval(audioCheckInterval);
-      window.removeEventListener('storage', handleStorageChange);
+      supabase.removeChannel(channel);
       if (audioRef.current) {
         audioRef.current.pause();
       }
