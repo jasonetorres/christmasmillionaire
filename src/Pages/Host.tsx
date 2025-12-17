@@ -138,7 +138,6 @@ export default function Host() {
       removed_answers: [] as any,
       active_lifeline: null,
       friend_name: undefined,
-      ai_response: '',
       total_winnings: moneyLadder[nextLevel - 1],
     });
 
@@ -212,7 +211,7 @@ export default function Host() {
   };
 
   const endLifeline = async () => {
-    await updateGameState({ active_lifeline: null, ai_response: '' });
+    await updateGameState({ active_lifeline: null });
   };
 
   if (!gameState || !currentQuestion) {
