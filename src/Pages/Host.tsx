@@ -176,53 +176,11 @@ export default function Host() {
   const handlePhoneFriend = async () => {
     if (!gameState || !currentQuestion) return;
 
-    const phoneNumber = prompt("Enter your phone number (with country code, e.g., +1234567890):");
-
-    if (!phoneNumber) {
-      alert("Phone number is required to make a call!");
-      return;
-    }
-
-    try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-      const response = await fetch(`${supabaseUrl}/functions/v1/initiate-phone-friend`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${supabaseAnonKey}`,
-        },
-        body: JSON.stringify({
-          phoneNumber: phoneNumber,
-          question: currentQuestion.question,
-          answerA: currentQuestion.answer_a,
-          answerB: currentQuestion.answer_b,
-          answerC: currentQuestion.answer_c,
-          answerD: currentQuestion.answer_d,
-          correctAnswer: currentQuestion.correct_answer,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        alert(data.error || "Failed to initiate call. Make sure Twilio credentials are configured.");
-        return;
-      }
-
-      await updateGameState({
-        lifeline_phone_used: true,
-        active_lifeline: 'phone',
-        friend_name: 'Santa Claus',
-        ai_response: data.aiResponse || 'Santa is calling your phone now! Answer to hear his advice.',
-      });
-
-      alert(`Santa is calling ${phoneNumber} now! Answer your phone to hear his advice.`);
-    } catch (error) {
-      console.error("Error initiating call:", error);
-      alert("Failed to initiate call. Please check console for details.");
-    }
+    await updateGameState({
+      lifeline_phone_used: true,
+      active_lifeline: 'phone',
+      friend_name: 'Santa Claus',
+    });
   };
 
   const handleAskAudience = async () => {
