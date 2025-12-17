@@ -1,4 +1,4 @@
-import { Phone, Mic, MicOff } from 'lucide-react';
+import { Phone, Mic, MicOff, Volume2, Grid3x3 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 
 interface VoiceChatProps {
@@ -18,10 +18,18 @@ export function VoiceChat({ friendName, questionData, onEnd }: VoiceChatProps) {
   const [callStatus, setCallStatus] = useState<'connecting' | 'connected' | 'talking'>('connecting');
   const [isMuted, setIsMuted] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [currentTime, setCurrentTime] = useState(new Date());
   const wsRef = useRef<WebSocket | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const initVoiceChat = async () => {
@@ -166,12 +174,12 @@ export function VoiceChat({ friendName, questionData, onEnd }: VoiceChatProps) {
       <div className="relative w-full max-w-sm mx-4">
         <div className="text-center mb-4">
           <p className="text-white/70 text-sm font-medium">Phone a Friend</p>
-          <p className="text-white/50 text-xs">powered by OpenAI Realtime</p>
+          <p className="text-white/50 text-xs">powered by Twilio</p>
         </div>
 
         <div className="bg-gradient-to-b from-gray-900 to-black rounded-[3rem] p-8 shadow-2xl border-8 border-gray-800">
           <div className="flex justify-between items-center mb-12 text-white text-xs">
-            <span>9:41</span>
+            <span>{currentTime.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
             <div className="flex items-center gap-1">
               <div className="w-4 h-3 border border-white rounded-sm"></div>
               <div className="flex gap-0.5">
@@ -224,11 +232,15 @@ export function VoiceChat({ friendName, questionData, onEnd }: VoiceChatProps) {
 
           <div className="flex justify-around opacity-50">
             <div className="text-center">
-              <div className="w-12 h-12 rounded-full bg-gray-700 mx-auto mb-2"></div>
+              <div className="w-12 h-12 rounded-full bg-gray-700 mx-auto mb-2 flex items-center justify-center">
+                <Volume2 className="w-6 h-6 text-white" />
+              </div>
               <p className="text-white text-xs">speaker</p>
             </div>
             <div className="text-center">
-              <div className="w-12 h-12 rounded-full bg-gray-700 mx-auto mb-2"></div>
+              <div className="w-12 h-12 rounded-full bg-gray-700 mx-auto mb-2 flex items-center justify-center">
+                <Grid3x3 className="w-6 h-6 text-white" />
+              </div>
               <p className="text-white text-xs">keypad</p>
             </div>
           </div>
