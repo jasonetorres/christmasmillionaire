@@ -15,8 +15,112 @@ interface PhoneCallScreenProps {
 }
 
 export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCallScreenProps) {
+  const [isListening, setIsListening] = useState(false);
+  const [isSantaSpeaking, setIsSantaSpeaking] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+  const [hasGreeted, setHasGreeted] = useState(false);
+
+  const recognitionRef = useRef<any>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   // If this is the host view, just show simple controls
   if (isHost) {
+    useEffect(() => {
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = true;
+        recognitionRef.current.lang = 'en-US';
+
+        recognitionRef.current.onstart = () => {
+          setIsListening(true);
+        };
+
+        recognitionRef.current.onresult = (event: any) => {
+          const transcript = Array.from(event.results)
+            .map((result: any) => result[0])
+            .map((result: any) => result.transcript)
+            .join('');
+
+          if (event.results[event.results.length - 1].isFinal) {
+            handleSpeechToSanta(transcript);
+          }
+        };
+
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
+
+      return () => {
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+        }
+      };
+    }, []);
+
+    const handleSpeechToSanta = async (transcript: string) => {
+      setIsListening(false);
+
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/santa-chat`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: transcript,
+              question: questionData.question,
+              answerA: questionData.answerA,
+              answerB: questionData.answerB,
+              answerC: questionData.answerC,
+              answerD: questionData.answerD,
+            }),
+          }
+        );
+
+        const data = await response.json();
+        if (data.response && data.audio) {
+          playAudio(data.audio);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    };
+
+    const playAudio = (audioArray: number[]) => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+
+      const audioBlob = new Blob([new Uint8Array(audioArray)], { type: 'audio/mpeg' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+
+      audio.onended = () => {
+        URL.revokeObjectURL(audioUrl);
+      };
+
+      audioRef.current = audio;
+      audio.play().catch(err => {
+        console.error('Failed to play audio:', err);
+      });
+    };
+
+    const toggleListening = () => {
+      if (isListening) {
+        recognitionRef.current?.stop();
+        setIsListening(false);
+      } else {
+        recognitionRef.current?.start();
+      }
+    };
+
     return (
       <div className="fixed bottom-8 right-8 z-50">
         <div className="bg-gradient-to-br from-red-900 to-red-950 border-2 border-red-500 rounded-xl p-6 shadow-2xl">
@@ -29,6 +133,28 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
               <p className="text-green-400 text-sm">Active on Display</p>
             </div>
           </div>
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={toggleListening}
+              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
+                isListening
+                  ? 'bg-red-500 hover:bg-red-600 text-white'
+                  : 'bg-green-600 hover:bg-green-700 text-white'
+              }`}
+            >
+              {isListening ? (
+                <>
+                  <MicOff className="w-4 h-4" />
+                  Stop
+                </>
+              ) : (
+                <>
+                  <Mic className="w-4 h-4" />
+                  Speak
+                </>
+              )}
+            </button>
+          </div>
           <button
             onClick={onEnd}
             className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2"
@@ -40,16 +166,6 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
       </div>
     );
   }
-
-  const [isListening, setIsListening] = useState(false);
-  const [isSantaSpeaking, setIsSantaSpeaking] = useState(false);
-  const [currentCaption, setCurrentCaption] = useState('');
-  const [speakerLabel, setSpeakerLabel] = useState<'You' | 'Santa' | ''>('');
-  const [callDuration, setCallDuration] = useState(0);
-  const [hasGreeted, setHasGreeted] = useState(false);
-
-  const recognitionRef = useRef<any>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -65,8 +181,6 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
 
       recognitionRef.current.onstart = () => {
         setIsListening(true);
-        setSpeakerLabel('You');
-        setCurrentCaption('Listening...');
       };
 
       recognitionRef.current.onresult = (event: any) => {
@@ -74,8 +188,6 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
           .map((result: any) => result[0])
           .map((result: any) => result.transcript)
           .join('');
-
-        setCurrentCaption(transcript);
 
         if (event.results[event.results.length - 1].isFinal) {
           handleSpeechToSanta(transcript);
@@ -85,10 +197,6 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
       recognitionRef.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);
         setIsListening(false);
-        if (event.error === 'no-speech') {
-          setCurrentCaption('No speech detected. Try again.');
-          setTimeout(() => setCurrentCaption(''), 2000);
-        }
       };
 
       recognitionRef.current.onend = () => {
@@ -122,7 +230,7 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
 
         const data = await response.json();
         if (data.response && data.audio) {
-          playAudio(data.response, data.audio);
+          playAudio(data.audio);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -167,16 +275,14 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
 
       const data = await response.json();
       if (data.response && data.audio) {
-        playAudio(data.response, data.audio);
+        playAudio(data.audio);
       }
     } catch (error) {
       console.error('Error:', error);
-      setCurrentCaption('Network error. Please try again.');
-      setTimeout(() => setCurrentCaption(''), 3000);
     }
   };
 
-  const playAudio = (text: string, audioArray: number[]) => {
+  const playAudio = (audioArray: number[]) => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current = null;
@@ -188,48 +294,22 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
 
     audio.onplay = () => {
       setIsSantaSpeaking(true);
-      setSpeakerLabel('Santa');
-      setCurrentCaption(text);
     };
 
     audio.onended = () => {
       setIsSantaSpeaking(false);
-      setTimeout(() => {
-        setSpeakerLabel('');
-        setCurrentCaption('');
-      }, 2000);
       URL.revokeObjectURL(audioUrl);
     };
 
     audio.onerror = () => {
       console.error('Audio playback error');
       setIsSantaSpeaking(false);
-      setSpeakerLabel('');
-      setCurrentCaption('Audio playback failed');
-      setTimeout(() => setCurrentCaption(''), 2000);
     };
 
     audioRef.current = audio;
     audio.play().catch(err => {
       console.error('Failed to play audio:', err);
-      setCurrentCaption('Click to enable audio');
-      setTimeout(() => setCurrentCaption(''), 3000);
     });
-  };
-
-  const toggleListening = () => {
-    if (isListening) {
-      recognitionRef.current?.stop();
-      setIsListening(false);
-    } else {
-      if (isSantaSpeaking) {
-        if (audioRef.current) {
-          audioRef.current.pause();
-        }
-        setIsSantaSpeaking(false);
-      }
-      recognitionRef.current?.start();
-    }
   };
 
   const formatDuration = (seconds: number) => {
@@ -241,7 +321,8 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
   const currentTime = new Date().toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: false
+    hour12: false,
+    timeZone: 'America/New_York'
   });
 
   return (
@@ -284,28 +365,6 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
             <p className="text-white text-2xl font-light">{formatDuration(callDuration)}</p>
           </div>
 
-          {/* Captions Area */}
-          <div className="flex-1 flex flex-col justify-start min-h-[180px]">
-            {speakerLabel && (
-              <div className="text-center mb-6">
-                <p className="text-gray-400 text-base font-medium mb-3">{speakerLabel}</p>
-                <div className="bg-gray-800/60 backdrop-blur rounded-2xl px-6 py-5 min-h-[120px] flex items-center justify-center">
-                  <p className="text-white text-lg leading-relaxed">{currentCaption}</p>
-                </div>
-              </div>
-            )}
-
-            {isListening && (
-              <div className="flex justify-center gap-2 mt-4">
-                <div className="w-1.5 h-8 bg-green-500 rounded-full animate-pulse"></div>
-                <div className="w-1.5 h-12 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-1.5 h-10 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-1.5 h-14 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }}></div>
-                <div className="w-1.5 h-10 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-              </div>
-            )}
-          </div>
-
           {/* Call Controls - Display Only */}
           <div className="mt-auto space-y-8">
             <div className="grid grid-cols-3 gap-8 mb-8">
@@ -338,29 +397,32 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
               </button>
             </div>
 
-            <div className="flex justify-center mb-4">
-              <button
-                onClick={toggleListening}
-                disabled={isSantaSpeaking}
-                className={`px-8 py-4 rounded-full font-medium transition-all shadow-lg ${
-                  isListening
-                    ? 'bg-red-500 hover:bg-red-600 text-white'
-                    : 'bg-green-600 hover:bg-green-700 text-white'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {isListening ? (
-                  <>
-                    <MicOff className="w-5 h-5 inline mr-2" />
-                    Stop Speaking
-                  </>
-                ) : isSantaSpeaking ? (
-                  'Santa is speaking...'
-                ) : (
-                  <>
-                    <Mic className="w-5 h-5 inline mr-2" />
-                    Tap to Speak
-                  </>
-                )}
+            <div className="grid grid-cols-3 gap-8 mb-8">
+              <button className="flex flex-col items-center opacity-50">
+                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
+                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57-.35-.11-.74-.03-1.02.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.59l2.2-2.21c.28-.26.36-.65.25-1C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1zM19 12h2c0-4.97-4.03-9-9-9v2c3.87 0 7 3.13 7 7z"/>
+                  </svg>
+                </div>
+                <span className="text-white text-xs">add call</span>
+              </button>
+
+              <button className="flex flex-col items-center opacity-50">
+                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
+                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
+                </div>
+                <span className="text-white text-xs">FaceTime</span>
+              </button>
+
+              <button className="flex flex-col items-center opacity-50">
+                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
+                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                  </svg>
+                </div>
+                <span className="text-white text-xs">contacts</span>
               </button>
             </div>
           </div>
