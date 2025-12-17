@@ -22,7 +22,7 @@ export function PhoneCallScreen({ questionData, onEnd }: PhoneCallScreenProps) {
   const [hasGreeted, setHasGreeted] = useState(false);
 
   const recognitionRef = useRef<any>(null);
-  const synthRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -94,8 +94,8 @@ export function PhoneCallScreen({ questionData, onEnd }: PhoneCallScreenProps) {
         );
 
         const data = await response.json();
-        if (data.response) {
-          speakText(data.response);
+        if (data.response && data.audio) {
+          playAudio(data.response, data.audio);
         }
       } catch (error) {
         console.error('Error:', error);
@@ -108,6 +108,9 @@ export function PhoneCallScreen({ questionData, onEnd }: PhoneCallScreenProps) {
       clearInterval(timer);
       if (recognitionRef.current) {
         recognitionRef.current.stop();
+      }
+      if (audioRef.current) {
+        audioRef.current.pause();
       }
       window.speechSynthesis.cancel();
     };
@@ -137,16 +140,55 @@ export function PhoneCallScreen({ questionData, onEnd }: PhoneCallScreenProps) {
       );
 
       const data = await response.json();
-      if (data.response) {
-        speakText(data.response);
+      if (data.response && data.audio) {
+        playAudio(data.response, data.audio);
       }
     } catch (error) {
       console.error('Error:', error);
-      speakText('Ho ho ho! Sorry, I seem to have lost connection from the North Pole. Can you repeat that?');
+      const fallbackText = 'Ho ho ho! Sorry, I seem to have lost connection from the North Pole. Can you repeat that?';
+      speakTextFallback(fallbackText);
     }
   };
 
-  const speakText = (text: string) => {
+  const playAudio = (text: string, audioArray: number[]) => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+
+    const audioBlob = new Blob([new Uint8Array(audioArray)], { type: 'audio/mpeg' });
+    const audioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(audioUrl);
+
+    audio.onplay = () => {
+      setIsSantaSpeaking(true);
+      setSpeakerLabel('Santa');
+      setCurrentCaption(text);
+    };
+
+    audio.onended = () => {
+      setIsSantaSpeaking(false);
+      setTimeout(() => {
+        setSpeakerLabel('');
+        setCurrentCaption('');
+      }, 2000);
+      URL.revokeObjectURL(audioUrl);
+    };
+
+    audio.onerror = () => {
+      console.error('Audio playback error');
+      setIsSantaSpeaking(false);
+      speakTextFallback(text);
+    };
+
+    audioRef.current = audio;
+    audio.play().catch(err => {
+      console.error('Failed to play audio:', err);
+      speakTextFallback(text);
+    });
+  };
+
+  const speakTextFallback = (text: string) => {
     window.speechSynthesis.cancel();
 
     const utterance = new SpeechSynthesisUtterance(text);
@@ -176,7 +218,6 @@ export function PhoneCallScreen({ questionData, onEnd }: PhoneCallScreenProps) {
       }, 2000);
     };
 
-    synthRef.current = utterance;
     window.speechSynthesis.speak(utterance);
   };
 
@@ -186,6 +227,9 @@ export function PhoneCallScreen({ questionData, onEnd }: PhoneCallScreenProps) {
       setIsListening(false);
     } else {
       if (isSantaSpeaking) {
+        if (audioRef.current) {
+          audioRef.current.pause();
+        }
         window.speechSynthesis.cancel();
         setIsSantaSpeaking(false);
       }

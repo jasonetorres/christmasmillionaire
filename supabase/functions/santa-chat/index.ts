@@ -51,8 +51,32 @@ Deno.serve(async (req: Request) => {
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
+    const ttsResponse = await fetch('https://api.openai.com/v1/audio/speech', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openaiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'tts-1',
+        voice: 'onyx',
+        input: aiResponse,
+        speed: 0.95,
+      }),
+    });
+
+    if (!ttsResponse.ok) {
+      const error = await ttsResponse.text();
+      throw new Error(`OpenAI TTS API error: ${error}`);
+    }
+
+    const audioBuffer = await ttsResponse.arrayBuffer();
+
     return new Response(
-      JSON.stringify({ response: aiResponse }),
+      JSON.stringify({
+        response: aiResponse,
+        audio: Array.from(new Uint8Array(audioBuffer))
+      }),
       {
         headers: {
           ...corsHeaders,
