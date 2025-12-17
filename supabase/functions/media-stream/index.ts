@@ -1,11 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
-};
-
 async function getAIResponse(question: string, answerA: string, answerB: string, answerC: string, answerD: string, correctAnswer: string): Promise<string> {
   const anthropicApiKey = Deno.env.get("ANTHROPIC_API_KEY");
   const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
@@ -72,55 +66,64 @@ Respond as Santa Claus - jovial, warm, and festive. Start with "Ho ho ho!" or a 
 }
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, {
-      status: 200,
-      headers: corsHeaders,
-    });
-  }
-
   try {
     const url = new URL(req.url);
     const questionDataParam = url.searchParams.get("questionData");
 
-    if (!questionDataParam) {
-      const twiml = `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="Polly.Matthew" language="en-US">Ho ho ho! This is Santa, but I don't have any question information. Please try again, my dear!</Say>
-  <Hangup/>
-</Response>`;
-
-      return new Response(twiml, {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "text/xml" },
-      });
+    if (req.headers.get("upgrade") !== "websocket") {
+      return new Response("Expected websocket connection", { status: 426 });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL");
-    const wsUrl = supabaseUrl?.replace("https://", "wss://") + `/functions/v1/media-stream?questionData=${encodeURIComponent(questionDataParam)}`;
+    const { socket, response } = Deno.upgradeWebSocket(req);
 
-    const twiml = `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Connect>
-    <Stream url="${wsUrl}" />
-  </Connect>
-</Response>`;
+    socket.onopen = () => {
+      console.log("WebSocket connected");
+    };
 
-    return new Response(twiml, {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "text/xml" },
-    });
+    socket.onmessage = async (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        console.log("Received message:", message.event);
+
+        if (message.event === "start") {
+          console.log("Stream started");
+          
+          if (questionDataParam) {
+            const questionData = JSON.parse(decodeURIComponent(questionDataParam));
+            const { question, answerA, answerB, answerC, answerD, correctAnswer, aiResponse: preGeneratedResponse } = questionData;
+            
+            const aiResponse = preGeneratedResponse || await getAIResponse(question, answerA, answerB, answerC, answerD, correctAnswer);
+            
+            console.log("AI Response:", aiResponse);
+            
+            socket.send(JSON.stringify({
+              event: "media",
+              media: {
+                payload: btoa(aiResponse)
+              }
+            }));
+          }
+        } else if (message.event === "media") {
+          console.log("Received audio data");
+        } else if (message.event === "stop") {
+          console.log("Stream stopped");
+        }
+      } catch (error) {
+        console.error("Error processing message:", error);
+      }
+    };
+
+    socket.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    socket.onclose = () => {
+      console.log("WebSocket closed");
+    };
+
+    return response;
   } catch (error) {
     console.error("Error:", error);
-    const errorTwiml = `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="Polly.Matthew" language="en-US">Ho ho ho! Sorry, I'm having trouble at the North Pole right now. Good luck with your answer!</Say>
-  <Hangup/>
-</Response>`;
-
-    return new Response(errorTwiml, {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "text/xml" },
-    });
+    return new Response("Internal server error", { status: 500 });
   }
 });
