@@ -1,44 +1,353 @@
-import { Link } from 'react-router-dom';
-import { Tv, Smartphone } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Play, SkipForward, RotateCcw, X } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { GameState, TriviaQuestion } from '../types';
+import { Lifelines } from '../Components/Lifelines';
+import { QuestionDisplay } from '../Components/QuestionDisplay';
 
-export default function Welcome() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 flex items-center justify-center p-8">
-      <div className="text-center max-w-4xl">
-        <h1 className="text-6xl md:text-8xl font-bold text-yellow-400 mb-4 drop-shadow-lg">
-          Who Wants to Be a Christmasaire?
-        </h1>
-        <h2 className="text-3xl md:text-4xl font-semibold text-red-400 mb-12">
-          🎄 The Festive Quiz Show 🎅
-        </h2>
+const moneyLadder = ['$100', '$200', '$300', '$500', '$1,000', '$2,000', '$4,000', '$8,000', '$16,000', '$32,000', '$64,000', '$125,000', '$250,000', '$500,000', '$1,000,000'];
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Link
-            to="/host"
-            className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-12 rounded-2xl hover:scale-105 transition-all shadow-2xl hover:shadow-blue-500/50"
-          >
-            <Smartphone className="w-24 h-24 mx-auto mb-4" />
-            <h3 className="text-3xl font-bold mb-2">Host Panel</h3>
-            <p className="text-xl text-blue-200">Control the game from your phone</p>
-          </Link>
+export default function Host() {
+    const [gameState, setGameState] = useState<GameState | null>(null);
+    const [currentQuestion, setCurrentQuestion] = useState<TriviaQuestion | null>(null);
 
-          <Link
-            to="/display"
-            className="bg-gradient-to-r from-purple-600 to-purple-700 text-white p-12 rounded-2xl hover:scale-105 transition-all shadow-2xl hover:shadow-purple-500/50"
-          >
-            <Tv className="w-24 h-24 mx-auto mb-4" />
-            <h3 className="text-3xl font-bold mb-2">Display Panel</h3>
-            <p className="text-xl text-purple-200">Stream visual for your audience</p>
-          </Link>
+    useEffect(() => {
+        loadGameState();
+    }, []);
+
+    const loadGameState = async () => {
+        const { data } = await supabase
+            .from('game_state')
+            .select('*')
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        if (data) {
+            setGameState(data);
+            if (data.current_question_id) {
+                const { data: question } = await supabase
+                    .from('trivia_questions')
+                    .select('*')
+                    .eq('id', data.current_question_id)
+                    .maybeSingle();
+                setCurrentQuestion(question);
+            }
+        }
+    };
+
+    const startNewGame = async () => {
+        // UPDATED: More robust deletion logic to clear old game sessions
+        const { error: deleteError } = await supabase
+            .from('game_state')
+            .delete()
+            .neq('id', '00000000-0000-0000-0000-000000000000');
+
+        if (deleteError) {
+            console.error("Error clearing old games:", deleteError);
+        }
+
+        // Ensure questions are available by resetting 'is_used' status
+        await supabase.from('trivia_questions').update({ is_used: false }).eq('is_used', true);
+
+        const { data: questions } = await supabase
+            .from('trivia_questions')
+            .select('*')
+            .eq('difficulty_level', 1)
+            .eq('is_used', false);
+
+        if (questions && questions.length > 0) {
+            const question = questions[Math.floor(Math.random() * questions.length)];
+            await supabase.from('trivia_questions').update({ is_used: true }).eq('id', question.id);
+
+            const { data: newGame, error: insertError } = await supabase
+                .from('game_state')
+                .insert({
+                    current_question_id: question.id,
+                    current_level: 1,
+                    game_status: 'question_shown',
+                    total_winnings: '$0',
+                })
+                .select()
+                .single();
+
+            if (insertError) {
+                console.error("Error starting new game session:", insertError);
+                alert("Failed to start game. Check browser console for details.");
+                return;
+            }
+
+            setGameState(newGame);
+            setCurrentQuestion(question);
+        } else {
+            // Alert if no questions are found
+            alert("No Level 1 questions found in the database. Please check your trivia_questions table.");
+        }
+    };
+
+    const updateGameState = async (updates: Partial<GameState>) => {
+        if (!gameState) return;
+
+        const { data, error } = await supabase
+            .from('game_state')
+            .update(updates)
+            .eq('id', gameState.id)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error updating game state:', error);
+            alert('Failed to update game state: ' + error.message);
+            return;
+        }
+
+        setGameState(data);
+    };
+
+    const handleAnswerSelect = async (answer: 'A' | 'B' | 'C' | 'D') => {
+        await updateGameState({ selected_answer: answer });
+    };
+
+    const showCorrectAnswer = async () => {
+        if (!gameState || !currentQuestion) return;
+
+        const isCorrect = gameState.selected_answer === currentQuestion.correct_answer;
+        if (!isCorrect) {
+            const guaranteedMoney = gameState.current_level <= 5 ? '$0' :
+                gameState.current_level <= 10 ? '$1,000' : '$32,000';
+            await updateGameState({
+                show_correct: true,
+                game_status: 'game_over',
+                total_winnings: guaranteedMoney
+            });
+        } else {
+            await updateGameState({ show_correct: true });
+        }
+    };
+
+    const nextQuestion = async () => {
+        if (!gameState) return;
+
+        const nextLevel = gameState.current_level + 1;
+        if (nextLevel > 15) {
+            alert('Game completed! The contestant wins $1,000,000!');
+            return;
+        }
+
+        const { data: questions } = await supabase
+            .from('trivia_questions')
+            .select('*')
+            .eq('difficulty_level', nextLevel)
+            .eq('is_used', false);
+
+        if (!questions || questions.length === 0) {
+            alert('No more questions available at this level');
+            return;
+        }
+
+        const question = questions[Math.floor(Math.random() * questions.length)];
+        await supabase.from('trivia_questions').update({ is_used: true }).eq('id', question.id);
+        await supabase.from('audience_votes').delete().eq('game_state_id', gameState.id);
+
+        await updateGameState({
+            current_question_id: question.id,
+            current_level: nextLevel,
+            selected_answer: null,
+            show_correct: false,
+            removed_answers: [] as any,
+            active_lifeline: null,
+            ai_response: '',
+            total_winnings: moneyLadder[nextLevel - 1],
+        });
+
+        setCurrentQuestion(question);
+    };
+
+    const resetGame = async () => {
+        if (confirm('Reset the game?')) {
+            await supabase.from('game_state').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+            await supabase.from('trivia_questions').update({ is_used: false }).eq('is_used', true);
+            setGameState(null);
+            setCurrentQuestion(null);
+        }
+    };
+
+    const handleFiftyFifty = async () => {
+        if (!gameState || !currentQuestion) return;
+        const correct = currentQuestion.correct_answer;
+        const others = ['A', 'B', 'C', 'D'].filter(a => a !== correct);
+        const toRemove = others.sort(() => 0.5 - Math.random()).slice(0, 2);
+
+        await updateGameState({
+            lifeline_fifty_fifty_used: true,
+            removed_answers: toRemove as any,
+        });
+    };
+
+    const handlePhoneFriend = async () => {
+        if (!gameState || !currentQuestion) return;
+
+        const phoneNumber = prompt("Enter your phone number (with country code, e.g., +1234567890):");
+
+        if (!phoneNumber) {
+            alert("Phone number is required to make a call!");
+            return;
+        }
+
+        try {
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+            const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+            const response = await fetch(`${supabaseUrl}/functions/v1/initiate-phone-friend`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${supabaseAnonKey}`,
+                },
+                body: JSON.stringify({
+                    phoneNumber: phoneNumber,
+                    question: currentQuestion.question,
+                    answerA: currentQuestion.answer_a,
+                    answerB: currentQuestion.answer_b,
+                    answerC: currentQuestion.answer_c,
+                    answerD: currentQuestion.answer_d,
+                    correctAnswer: currentQuestion.correct_answer,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || data.error) {
+                alert(data.error || "Failed to initiate call. Make sure Twilio credentials are configured.");
+                return;
+            }
+
+            await updateGameState({
+                lifeline_phone_used: true,
+                active_lifeline: 'phone',
+                friend_name: 'Santa Claus',
+                ai_response: 'Santa is connecting now...',
+            });
+
+        } catch (error) {
+            console.error("Error initiating call:", error);
+            alert("Failed to initiate call. Please check console for details.");
+        }
+    };
+
+    const handleAskAudience = async () => {
+        if (!gameState) return;
+
+        await supabase.from('audience_votes').delete().eq('game_state_id', gameState.id);
+
+        await updateGameState({
+            lifeline_audience_used: true,
+            active_lifeline: 'audience',
+        });
+    };
+
+    const endLifeline = async () => {
+        await updateGameState({ active_lifeline: null, ai_response: '' });
+    };
+
+    if (!gameState || !currentQuestion) {
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 p-8 flex items-center justify-center">
+                <button
+                    onClick={startNewGame}
+                    className="bg-green-600 text-white px-12 py-6 rounded-xl text-2xl font-bold hover:bg-green-700 transition-all shadow-2xl flex items-center gap-4"
+                >
+                    <Play className="w-10 h-10" />
+                    Start New Game
+                </button>
+            </div>
+        );
+    }
+
+    return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 p-8">
+            <div className="max-w-4xl mx-auto">
+                <div className="flex justify-between items-center mb-8">
+                    <h1 className="text-3xl font-bold text-yellow-400">Host Panel</h1>
+                    <button
+                        onClick={resetGame}
+                        className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all flex items-center gap-2"
+                    >
+                        <RotateCcw className="w-5 h-5" />
+                        Reset
+                    </button>
+                </div>
+
+                <Lifelines
+                    onFiftyFifty={handleFiftyFifty}
+                    onPhoneFriend={handlePhoneFriend}
+                    onAskAudience={handleAskAudience}
+                    fiftyFiftyUsed={gameState.lifeline_fifty_fifty_used}
+                    phoneFriendUsed={gameState.lifeline_phone_used}
+                    askAudienceUsed={gameState.lifeline_audience_used}
+                    disabled={false}
+                />
+
+                <QuestionDisplay
+                    question={currentQuestion}
+                    onAnswer={handleAnswerSelect}
+                    selectedAnswer={gameState.selected_answer as any}
+                    showResult={gameState.show_correct}
+                    removedAnswers={new Set((gameState.removed_answers as any[]) || [])}
+                    disabled={false}
+                />
+
+                <div className="flex gap-4 mt-8">
+                    {gameState.game_status !== 'game_over' && (
+                        <>
+                            <button
+                                onClick={showCorrectAnswer}
+                                disabled={!gameState.selected_answer || gameState.show_correct}
+                                className="flex-1 bg-yellow-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-yellow-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Show Correct Answer
+                            </button>
+                            <button
+                                onClick={nextQuestion}
+                                disabled={!gameState.show_correct}
+                                className="flex-1 bg-blue-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <SkipForward className="w-6 h-6" />
+                                Next Question
+                            </button>
+                        </>
+                    )}
+                    {gameState.game_status === 'game_over' && (
+                        <button
+                            onClick={resetGame}
+                            className="flex-1 bg-red-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-red-700 transition-all"
+                        >
+                            End Game
+                        </button>
+                    )}
+                </div>
+
+                {gameState.active_lifeline && (
+                    <div className="mt-4">
+                        <button
+                            onClick={endLifeline}
+                            className="w-full bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700 transition-all flex items-center justify-center gap-2"
+                        >
+                            <X className="w-5 h-5" />
+                            End Lifeline
+                        </button>
+                    </div>
+                )}
+
+                <div className="mt-8 bg-green-900/50 border-2 border-green-500 rounded-lg p-6">
+                    <div className="text-center">
+                        <p className="text-green-300 text-sm font-semibold mb-2">CORRECT ANSWER</p>
+                        <p className="text-green-100 text-3xl font-bold">
+                            {currentQuestion.correct_answer}: {currentQuestion[`answer_${currentQuestion.correct_answer.toLowerCase()}` as keyof TriviaQuestion]}
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <Link
-          to="/vote"
-          className="bg-gray-700 text-white px-8 py-4 rounded-xl hover:bg-gray-600 transition-all shadow-lg flex items-center gap-3 mx-auto w-fit"
-        >
-          <span className="text-xl">Audience Voting</span>
-        </Link>
-      </div>
-    </div>
-  );
+    );
 }
