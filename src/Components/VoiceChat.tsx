@@ -37,13 +37,16 @@ export function VoiceChat({ friendName, questionData, onEnd }: VoiceChatProps) {
         const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
         const wsUrl = `${supabaseUrl.replace('https://', 'wss://')}/functions/v1/voice-chat?apikey=${supabaseAnonKey}`;
+        console.log('Connecting to WebSocket:', wsUrl);
+
         wsRef.current = new WebSocket(wsUrl);
 
         wsRef.current.onopen = () => {
-          console.log('WebSocket connected');
+          console.log('WebSocket connected successfully');
           setCallStatus('connected');
 
           if (wsRef.current) {
+            console.log('Sending session config with question data');
             wsRef.current.send(JSON.stringify({
               type: 'session.config',
               questionData: questionData
@@ -74,10 +77,14 @@ export function VoiceChat({ friendName, questionData, onEnd }: VoiceChatProps) {
 
         wsRef.current.onerror = (error) => {
           console.error('WebSocket error:', error);
+          setCallStatus('connecting');
         };
 
-        wsRef.current.onclose = () => {
-          console.log('WebSocket closed');
+        wsRef.current.onclose = (event) => {
+          console.log('WebSocket closed:', event.code, event.reason);
+          if (event.code !== 1000) {
+            console.error('WebSocket closed unexpectedly. Code:', event.code, 'Reason:', event.reason);
+          }
         };
 
         processorRef.current.onaudioprocess = (e) => {
@@ -110,7 +117,7 @@ export function VoiceChat({ friendName, questionData, onEnd }: VoiceChatProps) {
       if (processorRef.current) {
         processorRef.current.disconnect();
       }
-      if (audioContextRef.current) {
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close();
       }
       if (mediaStreamRef.current) {
