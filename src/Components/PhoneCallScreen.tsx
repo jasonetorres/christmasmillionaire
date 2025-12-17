@@ -15,6 +15,32 @@ interface PhoneCallScreenProps {
 }
 
 export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCallScreenProps) {
+  // If this is the host view, just show simple controls
+  if (isHost) {
+    return (
+      <div className="fixed bottom-8 right-8 z-50">
+        <div className="bg-gradient-to-br from-red-900 to-red-950 border-2 border-red-500 rounded-xl p-6 shadow-2xl">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center text-2xl">
+              🎅
+            </div>
+            <div>
+              <p className="text-white font-bold text-lg">Phone a Friend</p>
+              <p className="text-green-400 text-sm">Active on Display</p>
+            </div>
+          </div>
+          <button
+            onClick={onEnd}
+            className="w-full bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2"
+          >
+            <Phone className="w-5 h-5 transform rotate-[135deg]" />
+            End Call
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const [isListening, setIsListening] = useState(false);
   const [isSantaSpeaking, setIsSantaSpeaking] = useState(false);
   const [currentCaption, setCurrentCaption] = useState('');
@@ -251,7 +277,7 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
   });
 
   return (
-    <div className={`fixed z-50 ${isHost ? 'top-8 right-8' : 'inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm'}`}>
+    <div className="fixed z-50 inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="w-[390px] bg-black rounded-[55px] shadow-2xl overflow-hidden relative">
         {/* iPhone Notch and Status Bar */}
         <div className="bg-black px-8 pt-3 pb-2 relative">
@@ -312,75 +338,64 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
             )}
           </div>
 
-          {/* Call Controls */}
-          {isHost && (
-            <div className="mt-auto space-y-8">
-              <div className="grid grid-cols-3 gap-8 mb-8">
-                <button className="flex flex-col items-center opacity-50">
-                  <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
-                    <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                    </svg>
-                  </div>
-                  <span className="text-white text-xs">mute</span>
-                </button>
+          {/* Call Controls - Display Only */}
+          <div className="mt-auto space-y-8">
+            <div className="grid grid-cols-3 gap-8 mb-8">
+              <button className="flex flex-col items-center opacity-50">
+                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
+                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                  </svg>
+                </div>
+                <span className="text-white text-xs">mute</span>
+              </button>
 
-                <button className="flex flex-col items-center opacity-50">
-                  <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
-                    <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
-                    </svg>
-                  </div>
-                  <span className="text-white text-xs">keypad</span>
-                </button>
+              <button className="flex flex-col items-center opacity-50">
+                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
+                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+                  </svg>
+                </div>
+                <span className="text-white text-xs">keypad</span>
+              </button>
 
-                <button className="flex flex-col items-center opacity-50">
-                  <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
-                    <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
-                    </svg>
-                  </div>
-                  <span className="text-white text-xs">speaker</span>
-                </button>
-              </div>
-
-              <div className="flex justify-center">
-                <button
-                  onClick={isHost ? onEnd : undefined}
-                  className="w-20 h-20 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center shadow-lg transition-all"
-                >
-                  <Phone className="w-9 h-9 text-white transform rotate-[135deg]" />
-                </button>
-              </div>
-
-              <div className="flex justify-center">
-                <button
-                  onClick={toggleListening}
-                  disabled={isSantaSpeaking}
-                  className={`px-8 py-4 rounded-full font-medium transition-all shadow-lg ${
-                    isListening
-                      ? 'bg-red-500 hover:bg-red-600 text-white'
-                      : 'bg-green-600 hover:bg-green-700 text-white'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {isListening ? (
-                    <>
-                      <MicOff className="w-5 h-5 inline mr-2" />
-                      Stop Speaking
-                    </>
-                  ) : isSantaSpeaking ? (
-                    'Santa is speaking...'
-                  ) : (
-                    <>
-                      <Mic className="w-5 h-5 inline mr-2" />
-                      Tap to Speak
-                    </>
-                  )}
-                </button>
-              </div>
+              <button className="flex flex-col items-center opacity-50">
+                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
+                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                  </svg>
+                </div>
+                <span className="text-white text-xs">speaker</span>
+              </button>
             </div>
-          )}
+
+            <div className="flex justify-center mb-4">
+              <button
+                onClick={toggleListening}
+                disabled={isSantaSpeaking}
+                className={`px-8 py-4 rounded-full font-medium transition-all shadow-lg ${
+                  isListening
+                    ? 'bg-red-500 hover:bg-red-600 text-white'
+                    : 'bg-green-600 hover:bg-green-700 text-white'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {isListening ? (
+                  <>
+                    <MicOff className="w-5 h-5 inline mr-2" />
+                    Stop Speaking
+                  </>
+                ) : isSantaSpeaking ? (
+                  'Santa is speaking...'
+                ) : (
+                  <>
+                    <Mic className="w-5 h-5 inline mr-2" />
+                    Tap to Speak
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
