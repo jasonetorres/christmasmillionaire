@@ -38,15 +38,35 @@ fastify.route({
 
         let streamSid = null;
 
-        // Connect to OpenAI Realtime API
-        const openaiWs = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01', {
+        // 1. Extract questionData from the URL query string so Santa has context
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        const questionDataParam = url.searchParams.get('questionData');
+        let dynamicInstructions = SYSTEM_MESSAGE;
+
+        if (questionDataParam) {
+            try {
+                const questionData = JSON.parse(decodeURIComponent(questionDataParam));
+                dynamicInstructions += `\n\nHELP THE CONTESTANT WITH THIS QUESTION:
+                Question: ${questionData.question}
+                A) ${questionData.answerA}
+                B) ${questionData.answerB}
+                C) ${questionData.answerC}
+                D) ${questionData.answerD}
+                The correct answer is ${questionData.correctAnswer}. Guide them there warmly and stay in character!`;
+            } catch (e) {
+                console.error("Failed to parse question data", e);
+            }
+        }
+
+        // 2. Connect to OpenAI Realtime API using the latest stable preview model
+        const openaiWs = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17', {
             headers: {
                 Authorization: `Bearer ${OPENAI_API_KEY}`,
                 "OpenAI-Beta": "realtime=v1"
             }
         });
 
-        // Initialize the AI Session
+        // 3. Initialize the AI Session with context-aware instructions
         const initializeSession = () => {
             console.log('OpenAI connection opened. Initializing session...');
             const sessionUpdate = {
@@ -56,7 +76,7 @@ fastify.route({
                     input_audio_format: 'g711_ulaw',
                     output_audio_format: 'g711_ulaw',
                     voice: VOICE,
-                    instructions: SYSTEM_MESSAGE,
+                    instructions: dynamicInstructions,
                     modalities: ["text", "audio"],
                     temperature: 0.8,
                 }
@@ -66,7 +86,7 @@ fastify.route({
 
         openaiWs.on('open', initializeSession);
 
-        // Relay OpenAI Audio -> Twilio
+        // 4. Relay OpenAI Audio -> Twilio
         openaiWs.on('message', (data) => {
             try {
                 const response = JSON.parse(data);
@@ -81,7 +101,7 @@ fastify.route({
             } catch (err) { console.error('Error processing OpenAI message:', err); }
         });
 
-        // Relay Twilio Audio -> OpenAI
+        // 5. Relay Twilio Audio -> OpenAI
         connection.on('message', (message) => {
             try {
                 const data = JSON.parse(message);
