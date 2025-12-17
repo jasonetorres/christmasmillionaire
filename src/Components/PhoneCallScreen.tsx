@@ -22,6 +22,7 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
 
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const transcriptRef = useRef<string>('');
 
   // If this is the host view, just show a simple status indicator
   if (isHost) {
@@ -55,12 +56,13 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
+      recognitionRef.current.continuous = true;
       recognitionRef.current.interimResults = true;
       recognitionRef.current.lang = 'en-US';
 
       recognitionRef.current.onstart = () => {
         setIsListening(true);
+        transcriptRef.current = '';
       };
 
       recognitionRef.current.onresult = (event: any) => {
@@ -68,10 +70,7 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
           .map((result: any) => result[0])
           .map((result: any) => result.transcript)
           .join('');
-
-        if (event.results[event.results.length - 1].isFinal) {
-          handleSpeechToSanta(transcript);
-        }
+        transcriptRef.current = transcript;
       };
 
       recognitionRef.current.onend = () => {
@@ -166,7 +165,11 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
   const toggleListening = () => {
     if (isListening) {
       recognitionRef.current?.stop();
-      setIsListening(false);
+      const finalTranscript = transcriptRef.current.trim();
+      if (finalTranscript) {
+        handleSpeechToSanta(finalTranscript);
+      }
+      transcriptRef.current = '';
     } else {
       recognitionRef.current?.start();
     }
@@ -257,23 +260,42 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
 
           {/* Call Controls with Microphone Button */}
           <div className="mt-auto space-y-8">
-            <div className="grid grid-cols-3 gap-8 mb-8">
+            {/* Large Talk Button */}
+            <div className="flex justify-center mb-8">
               <button
                 onClick={toggleListening}
-                className={`flex flex-col items-center transition-all ${
-                  isListening ? 'opacity-100' : 'opacity-50'
+                disabled={isSantaSpeaking}
+                className={`w-32 h-32 rounded-full flex flex-col items-center justify-center transition-all shadow-2xl ${
+                  isListening
+                    ? 'bg-red-600 animate-pulse scale-110'
+                    : isSantaSpeaking
+                    ? 'bg-gray-600 cursor-not-allowed'
+                    : 'bg-green-600 hover:bg-green-700'
                 }`}
               >
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 ${
-                  isListening ? 'bg-red-600' : 'bg-gray-700'
-                }`}>
-                  {isListening ? (
-                    <MicOff className="w-7 h-7 text-white" />
-                  ) : (
-                    <Mic className="w-7 h-7 text-white" />
-                  )}
+                {isListening ? (
+                  <>
+                    <MicOff className="w-12 h-12 text-white mb-2" />
+                    <span className="text-white font-bold text-sm">STOP</span>
+                  </>
+                ) : (
+                  <>
+                    <Mic className="w-12 h-12 text-white mb-2" />
+                    <span className="text-white font-bold text-sm">TALK</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-8 mb-8">
+              <button className="flex flex-col items-center opacity-50">
+                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
+                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                  </svg>
                 </div>
-                <span className="text-white text-xs">{isListening ? 'listening...' : 'speak'}</span>
+                <span className="text-white text-xs">mute</span>
               </button>
 
               <button className="flex flex-col items-center opacity-50">
