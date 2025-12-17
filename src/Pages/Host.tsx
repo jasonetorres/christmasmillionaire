@@ -137,7 +137,6 @@ export default function Host() {
       show_correct: false,
       removed_answers: [] as any,
       active_lifeline: null,
-      friend_name: undefined,
       total_winnings: moneyLadder[nextLevel - 1],
     });
 
@@ -171,7 +170,6 @@ export default function Host() {
     await updateGameState({
       lifeline_phone_used: true,
       active_lifeline: 'phone',
-      friend_name: 'Santa Claus',
     });
   };
 

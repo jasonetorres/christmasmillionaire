@@ -25,8 +25,6 @@ export interface GameState {
   removed_answers: string[];
   active_lifeline: string | null;
   total_winnings: string;
-  friend_name: string;
-  ai_response: string;
   current_question?: TriviaQuestion;
 }
 
