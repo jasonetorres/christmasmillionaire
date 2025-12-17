@@ -11,9 +11,10 @@ interface PhoneCallScreenProps {
     correctAnswer: string;
   };
   onEnd: () => void;
+  isHost?: boolean;
 }
 
-export function PhoneCallScreen({ questionData, onEnd }: PhoneCallScreenProps) {
+export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCallScreenProps) {
   const [isListening, setIsListening] = useState(false);
   const [isSantaSpeaking, setIsSantaSpeaking] = useState(false);
   const [currentCaption, setCurrentCaption] = useState('');
@@ -282,35 +283,37 @@ export function PhoneCallScreen({ questionData, onEnd }: PhoneCallScreenProps) {
             )}
           </div>
 
-          <div className="space-y-4">
-            <button
-              onClick={toggleListening}
-              disabled={isSantaSpeaking}
-              className={`w-20 h-20 mx-auto flex items-center justify-center rounded-full transition-all shadow-lg ${
-                isListening
-                  ? 'bg-red-500 hover:bg-red-600 animate-pulse'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {isListening ? (
-                <MicOff className="w-8 h-8 text-white" />
-              ) : (
-                <Mic className="w-8 h-8 text-white" />
-              )}
-            </button>
+          {isHost && (
+            <div className="space-y-4">
+              <button
+                onClick={toggleListening}
+                disabled={isSantaSpeaking}
+                className={`w-20 h-20 mx-auto flex items-center justify-center rounded-full transition-all shadow-lg ${
+                  isListening
+                    ? 'bg-red-500 hover:bg-red-600 animate-pulse'
+                    : 'bg-blue-600 hover:bg-blue-700'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {isListening ? (
+                  <MicOff className="w-8 h-8 text-white" />
+                ) : (
+                  <Mic className="w-8 h-8 text-white" />
+                )}
+              </button>
 
-            <p className="text-center text-gray-400 text-sm">
-              {isListening ? 'Tap to stop' : isSantaSpeaking ? 'Santa is speaking...' : 'Tap to speak'}
-            </p>
+              <p className="text-center text-gray-400 text-sm">
+                {isListening ? 'Tap to stop' : isSantaSpeaking ? 'Santa is speaking...' : 'Tap to speak'}
+              </p>
 
-            <button
-              onClick={onEnd}
-              className="w-full bg-red-600 text-white rounded-full py-3 flex items-center justify-center gap-2 hover:bg-red-700 transition-all font-semibold"
-            >
-              <Phone className="w-5 h-5" />
-              End Call
-            </button>
-          </div>
+              <button
+                onClick={onEnd}
+                className="w-full bg-red-600 text-white rounded-full py-3 flex items-center justify-center gap-2 hover:bg-red-700 transition-all font-semibold"
+              >
+                <Phone className="w-5 h-5" />
+                End Call
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>

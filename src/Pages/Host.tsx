@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { GameState, TriviaQuestion } from '../types';
 import { Lifelines } from '../Components/Lifelines';
 import { QuestionDisplay } from '../Components/QuestionDisplay';
+import { PhoneCallScreen } from '../Components/PhoneCallScreen';
 
 const moneyLadder = ['$100', '$200', '$300', '$500', '$1,000', '$2,000', '$4,000', '$8,000', '$16,000', '$32,000', '$64,000', '$125,000', '$250,000', '$500,000', '$1,000,000'];
 
@@ -326,6 +327,21 @@ export default function Host() {
           </div>
         </div>
       </div>
+
+      {gameState.active_lifeline === 'phone' && currentQuestion && (
+        <PhoneCallScreen
+          questionData={{
+            question: currentQuestion.question,
+            answerA: currentQuestion.answer_a,
+            answerB: currentQuestion.answer_b,
+            answerC: currentQuestion.answer_c,
+            answerD: currentQuestion.answer_d,
+            correctAnswer: currentQuestion.correct_answer,
+          }}
+          onEnd={endLifeline}
+          isHost={true}
+        />
+      )}
     </div>
   );
 }

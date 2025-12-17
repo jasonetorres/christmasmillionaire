@@ -241,6 +241,7 @@ export default function Display() {
                 .eq('id', gameState.id);
             }
           }}
+          isHost={false}
         />
       )}
     </div>
