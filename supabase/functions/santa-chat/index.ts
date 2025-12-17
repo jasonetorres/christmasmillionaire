@@ -59,7 +59,14 @@ AVOID:
 
 Remember: You're the REAL Santa answering your phone at the North Pole - knowledgeable, warm, genuine, and helpful.`;
 
-    const userPrompt = message || `[Phone rings and Santa answers] Contestant: "Hi Santa! I need help with this question: ${question}\n\nA: ${answerA}\nB: ${answerB}\nC: ${answerC}\nD: ${answerD}\n\nWhat do you think the answer is?"`;
+    const questionContext = `Question: ${question}\nA: ${answerA}\nB: ${answerB}\nC: ${answerC}\nD: ${answerD}`;
+
+    let userPrompt;
+    if (message === 'Hi Santa! Thanks for taking my call!') {
+      userPrompt = `[Phone rings and Santa answers] Contestant: "Hi Santa! I need help with this question: ${questionContext}\n\nWhat do you think the answer is?"`;
+    } else {
+      userPrompt = `Contestant says: "${message}"\n\n${questionContext}\n\nPlease respond naturally to what they said and help them with the question.`;
+    }
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
