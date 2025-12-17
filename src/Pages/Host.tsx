@@ -69,7 +69,6 @@ export default function Host() {
   const updateGameState = async (updates: Partial<GameState>) => {
     if (!gameState) return;
 
-    console.log('Updating game state:', updates);
     const { data, error } = await supabase
       .from('game_state')
       .update(updates)
@@ -83,7 +82,6 @@ export default function Host() {
       return;
     }
 
-    console.log('Game state updated successfully:', data);
     setGameState(data);
   };
 
@@ -98,11 +96,6 @@ export default function Host() {
     if (!isCorrect) {
       const guaranteedMoney = gameState.current_level <= 5 ? '$0' :
                               gameState.current_level <= 10 ? '$1,000' : '$32,000';
-      console.log('Wrong answer! Updating to game_over', {
-        show_correct: true,
-        game_status: 'game_over',
-        total_winnings: guaranteedMoney
-      });
       await updateGameState({
         show_correct: true,
         game_status: 'game_over',

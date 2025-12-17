@@ -144,16 +144,6 @@ export default function Display() {
   const isGameOver = gameState.game_status === 'game_over';
   const isWrongAnswer = gameState.show_correct && gameState.selected_answer !== currentQuestion.correct_answer;
 
-  console.log('Display State:', {
-    game_status: gameState.game_status,
-    show_correct: gameState.show_correct,
-    selected_answer: gameState.selected_answer,
-    correct_answer: currentQuestion.correct_answer,
-    isGameOver,
-    isWrongAnswer,
-    shouldShowModal: isGameOver && isWrongAnswer
-  });
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 p-8">
       {isCorrectAnswer && <Celebration isWin={hasWon} />}
