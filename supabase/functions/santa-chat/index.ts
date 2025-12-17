@@ -87,8 +87,8 @@ Remember: You're the REAL Santa - knowledgeable, warm, genuine, and helpful. Mak
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
-    // Use ElevenLabs for TTS with a warm, grandfatherly voice
-    const voiceId = 'pNInz6obpgDQGcFmaJgB'; // Adam - deep, warm voice perfect for Santa
+    // Use ElevenLabs for TTS with Santa voice
+    const voiceId = '1wg2wOjdEWKA7yQD8Kca';
     const ttsResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
       method: 'POST',
       headers: {
