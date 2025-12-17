@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { WebSocket as WSClient } from "npm:ws@8.18.0";
 
 const OPENAI_REALTIME_MODEL = "gpt-4o-realtime-preview-2024-12-17";
 
@@ -35,7 +36,7 @@ Deno.serve(async (req: Request) => {
 
     console.log("Upgrading to WebSocket connection");
     const { socket: clientWs, response } = Deno.upgradeWebSocket(req);
-    let openaiWs: WebSocket | null = null;
+    let openaiWs: any = null;
     let sessionConfigured = false;
 
     clientWs.onopen = async () => {
@@ -44,101 +45,83 @@ Deno.serve(async (req: Request) => {
       try {
         const openaiUrl = `wss://api.openai.com/v1/realtime?model=${OPENAI_REALTIME_MODEL}`;
 
-        const wsHeaders = new Headers();
-        wsHeaders.set("Authorization", `Bearer ${openaiApiKey}`);
-        wsHeaders.set("OpenAI-Beta", "realtime=v1");
-
-        const wsRequest = new Request(openaiUrl, {
-          headers: wsHeaders,
-        });
-
-        const wsResponse = await fetch(wsRequest, {
+        openaiWs = new WSClient(openaiUrl, {
           headers: {
-            "Upgrade": "websocket",
-            "Connection": "Upgrade",
             "Authorization": `Bearer ${openaiApiKey}`,
             "OpenAI-Beta": "realtime=v1"
           }
         });
 
-        if (wsResponse.status === 101) {
-          openaiWs = wsResponse.webSocket!;
-          openaiWs.accept();
+        openaiWs.on('open', () => {
+          console.log("OpenAI WebSocket connected");
+        });
 
-          openaiWs.onopen = () => {
-            console.log("OpenAI WebSocket connected");
-          };
+        openaiWs.on('message', (data: any) => {
+          try {
+            const message = JSON.parse(data.toString());
 
-          openaiWs.onmessage = (event) => {
-            try {
-              const data = JSON.parse(event.data);
-
-              if (data.type === "session.created") {
-                console.log("Session created");
-              } else if (data.type === "session.updated") {
-                console.log("Session updated");
-                if (clientWs.readyState === WebSocket.OPEN) {
-                  clientWs.send(JSON.stringify({ type: "session.ready" }));
-                }
-              } else if (data.type === "response.audio.delta" && data.delta) {
-                if (clientWs.readyState === WebSocket.OPEN) {
-                  clientWs.send(JSON.stringify({
-                    type: "audio.delta",
-                    audio: data.delta
-                  }));
-                }
-              } else if (data.type === "response.audio_transcript.done") {
-                console.log("OpenAI transcript:", data.transcript);
-                if (clientWs.readyState === WebSocket.OPEN) {
-                  clientWs.send(JSON.stringify({
-                    type: "transcript",
-                    text: data.transcript
-                  }));
-                }
-              } else if (data.type === "input_audio_buffer.speech_started") {
-                console.log("User started speaking");
-              } else if (data.type === "input_audio_buffer.speech_stopped") {
-                console.log("User stopped speaking");
-              } else if (data.type === "response.done") {
-                console.log("Response completed");
-              } else if (data.type === "error") {
-                console.error("OpenAI error:", data);
-                if (clientWs.readyState === WebSocket.OPEN) {
-                  clientWs.send(JSON.stringify({
-                    type: "error",
-                    message: data.error?.message || "OpenAI error occurred"
-                  }));
-                }
+            if (message.type === "session.created") {
+              console.log("Session created");
+            } else if (message.type === "session.updated") {
+              console.log("Session updated");
+              if (clientWs.readyState === WebSocket.OPEN) {
+                clientWs.send(JSON.stringify({ type: "session.ready" }));
               }
-            } catch (error) {
-              console.error("Error processing OpenAI message:", error);
+            } else if (message.type === "response.audio.delta" && message.delta) {
+              if (clientWs.readyState === WebSocket.OPEN) {
+                clientWs.send(JSON.stringify({
+                  type: "audio.delta",
+                  audio: message.delta
+                }));
+              }
+            } else if (message.type === "response.audio_transcript.done") {
+              console.log("OpenAI transcript:", message.transcript);
+              if (clientWs.readyState === WebSocket.OPEN) {
+                clientWs.send(JSON.stringify({
+                  type: "transcript",
+                  text: message.transcript
+                }));
+              }
+            } else if (message.type === "input_audio_buffer.speech_started") {
+              console.log("User started speaking");
+            } else if (message.type === "input_audio_buffer.speech_stopped") {
+              console.log("User stopped speaking");
+            } else if (message.type === "response.done") {
+              console.log("Response completed");
+            } else if (message.type === "error") {
+              console.error("OpenAI error:", message);
+              if (clientWs.readyState === WebSocket.OPEN) {
+                clientWs.send(JSON.stringify({
+                  type: "error",
+                  message: message.error?.message || "OpenAI error occurred"
+                }));
+              }
             }
-          };
+          } catch (error) {
+            console.error("Error processing OpenAI message:", error);
+          }
+        });
 
-          openaiWs.onerror = (error) => {
-            console.error("OpenAI WebSocket error:", error);
-            if (clientWs.readyState === WebSocket.OPEN) {
-              clientWs.send(JSON.stringify({
-                type: "error",
-                message: "Failed to connect to OpenAI. Please verify your API key has access to the Realtime API."
-              }));
-              clientWs.close(1011, "OpenAI connection failed");
-            }
-          };
+        openaiWs.on('error', (error: any) => {
+          console.error("OpenAI WebSocket error:", error);
+          if (clientWs.readyState === WebSocket.OPEN) {
+            clientWs.send(JSON.stringify({
+              type: "error",
+              message: "Failed to connect to OpenAI. Please verify your API key has access to the Realtime API."
+            }));
+            clientWs.close(1011, "OpenAI connection failed");
+          }
+        });
 
-          openaiWs.onclose = (event) => {
-            console.log("OpenAI WebSocket closed. Code:", event.code, "Reason:", event.reason);
-            if (event.code !== 1000) {
-              console.error("OpenAI closed with error. Code:", event.code);
-            }
-            if (clientWs.readyState === WebSocket.OPEN) {
-              clientWs.close();
-            }
-          };
-        } else {
-          console.error("Failed to upgrade to WebSocket. Status:", wsResponse.status);
-          throw new Error(`WebSocket upgrade failed with status ${wsResponse.status}`);
-        }
+        openaiWs.on('close', (code: number, reason: string) => {
+          console.log("OpenAI WebSocket closed. Code:", code, "Reason:", reason);
+          if (code !== 1000) {
+            console.error("OpenAI closed with error. Code:", code);
+          }
+          if (clientWs.readyState === WebSocket.OPEN) {
+            clientWs.close();
+          }
+        });
       } catch (error) {
         console.error("Error creating OpenAI WebSocket:", error);
         if (clientWs.readyState === WebSocket.OPEN) {
@@ -187,13 +170,13 @@ Deno.serve(async (req: Request) => {
             }
           };
 
-          if (openaiWs?.readyState === WebSocket.OPEN) {
+          if (openaiWs && openaiWs.readyState === 1) {
             openaiWs.send(JSON.stringify(sessionUpdate));
             console.log("Session configured with Santa persona");
           } else {
             console.error("OpenAI WebSocket not ready for session config");
           }
-        } else if (message.type === "audio.input" && openaiWs?.readyState === WebSocket.OPEN) {
+        } else if (message.type === "audio.input" && openaiWs && openaiWs.readyState === 1) {
           const audioAppend = {
             type: "input_audio_buffer.append",
             audio: message.audio
@@ -211,7 +194,7 @@ Deno.serve(async (req: Request) => {
 
     clientWs.onclose = () => {
       console.log("Client WebSocket closed");
-      if (openaiWs?.readyState === WebSocket.OPEN) {
+      if (openaiWs && openaiWs.readyState === 1) {
         openaiWs.close();
       }
     };
