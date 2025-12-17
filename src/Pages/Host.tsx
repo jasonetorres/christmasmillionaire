@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Play, SkipForward, RotateCcw, X } from 'lucide-react';
+import { Play, SkipForward, RotateCcw, X, RefreshCw } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { GameState, TriviaQuestion } from '../types';
 import { Lifelines } from '../Components/Lifelines';
@@ -188,6 +188,37 @@ export default function Host() {
     await updateGameState({ active_lifeline: null });
   };
 
+  const getNewQuestion = async () => {
+    if (!gameState || !currentQuestion) return;
+
+    await supabase.from('trivia_questions').update({ is_used: false }).eq('id', currentQuestion.id);
+
+    const { data: questions } = await supabase
+      .from('trivia_questions')
+      .select('*')
+      .eq('difficulty_level', gameState.current_level)
+      .eq('is_used', false);
+
+    if (!questions || questions.length === 0) {
+      alert('No more unused questions available at this level');
+      return;
+    }
+
+    const question = questions[Math.floor(Math.random() * questions.length)];
+    await supabase.from('trivia_questions').update({ is_used: true }).eq('id', question.id);
+    await supabase.from('audience_votes').delete().eq('game_state_id', gameState.id);
+
+    await updateGameState({
+      current_question_id: question.id,
+      selected_answer: null,
+      show_correct: false,
+      removed_answers: [] as any,
+      active_lifeline: null,
+    });
+
+    setCurrentQuestion(question);
+  };
+
   if (!gameState || !currentQuestion) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 p-8 flex items-center justify-center">
@@ -207,13 +238,22 @@ export default function Host() {
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-yellow-400">Host Panel</h1>
-          <button
-            onClick={resetGame}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all flex items-center gap-2"
-          >
-            <RotateCcw className="w-5 h-5" />
-            Reset
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={getNewQuestion}
+              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-all flex items-center gap-2"
+            >
+              <RefreshCw className="w-5 h-5" />
+              New Question
+            </button>
+            <button
+              onClick={resetGame}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all flex items-center gap-2"
+            >
+              <RotateCcw className="w-5 h-5" />
+              Reset
+            </button>
+          </div>
         </div>
 
         <Lifelines
