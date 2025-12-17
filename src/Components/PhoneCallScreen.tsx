@@ -53,6 +53,46 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
         };
       }
 
+      // Send initial greeting
+      const initialGreeting = async () => {
+        if (hasGreeted) return;
+        setHasGreeted(true);
+
+        try {
+          const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/santa-chat`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                message: 'Hi Santa! Thanks for taking my call!',
+                question: questionData.question,
+                answerA: questionData.answerA,
+                answerB: questionData.answerB,
+                answerC: questionData.answerC,
+                answerD: questionData.answerD,
+              }),
+            }
+          );
+
+          const data = await response.json();
+          if (data.response && data.audio) {
+            const audioData = {
+              audio: data.audio,
+              timestamp: Date.now()
+            };
+            localStorage.setItem('santa_audio', JSON.stringify(audioData));
+          }
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      };
+
+      initialGreeting();
+
       return () => {
         if (recognitionRef.current) {
           recognitionRef.current.stop();
@@ -85,31 +125,17 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
 
         const data = await response.json();
         if (data.response && data.audio) {
-          playAudio(data.audio);
+          // Store audio in a way the display can access it
+          const audioData = {
+            audio: data.audio,
+            timestamp: Date.now()
+          };
+          // We'll use localStorage for quick sync between host and display
+          localStorage.setItem('santa_audio', JSON.stringify(audioData));
         }
       } catch (error) {
         console.error('Error:', error);
       }
-    };
-
-    const playAudio = (audioArray: number[]) => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-
-      const audioBlob = new Blob([new Uint8Array(audioArray)], { type: 'audio/mpeg' });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-
-      audio.onended = () => {
-        URL.revokeObjectURL(audioUrl);
-      };
-
-      audioRef.current = audio;
-      audio.play().catch(err => {
-        console.error('Failed to play audio:', err);
-      });
     };
 
     const toggleListening = () => {
@@ -172,115 +198,52 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
       setCallDuration(prev => prev + 1);
     }, 1000);
 
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = true;
-      recognitionRef.current.lang = 'en-US';
-
-      recognitionRef.current.onstart = () => {
-        setIsListening(true);
-      };
-
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = Array.from(event.results)
-          .map((result: any) => result[0])
-          .map((result: any) => result.transcript)
-          .join('');
-
-        if (event.results[event.results.length - 1].isFinal) {
-          handleSpeechToSanta(transcript);
-        }
-      };
-
-      recognitionRef.current.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        setIsListening(false);
-      };
-
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
-    }
-
-    const initialGreeting = async () => {
-      if (hasGreeted) return;
-      setHasGreeted(true);
-
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/santa-chat`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              message: 'Hi Santa! Thanks for taking my call!',
-              question: questionData.question,
-              answerA: questionData.answerA,
-              answerB: questionData.answerB,
-              answerC: questionData.answerC,
-              answerD: questionData.answerD,
-            }),
+    // Listen for audio updates from localStorage
+    let lastTimestamp = 0;
+    const checkForAudio = () => {
+      const audioData = localStorage.getItem('santa_audio');
+      if (audioData) {
+        try {
+          const parsed = JSON.parse(audioData);
+          if (parsed.timestamp > lastTimestamp) {
+            lastTimestamp = parsed.timestamp;
+            playAudio(parsed.audio);
           }
-        );
-
-        const data = await response.json();
-        if (data.response && data.audio) {
-          playAudio(data.audio);
+        } catch (error) {
+          console.error('Error parsing audio data:', error);
         }
-      } catch (error) {
-        console.error('Error:', error);
       }
     };
 
-    initialGreeting();
+    // Check for audio every 500ms
+    const audioCheckInterval = setInterval(checkForAudio, 500);
+
+    // Also listen for storage events (for cross-tab communication)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'santa_audio' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (parsed.timestamp > lastTimestamp) {
+            lastTimestamp = parsed.timestamp;
+            playAudio(parsed.audio);
+          }
+        } catch (error) {
+          console.error('Error parsing audio data:', error);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
       clearInterval(timer);
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
+      clearInterval(audioCheckInterval);
+      window.removeEventListener('storage', handleStorageChange);
       if (audioRef.current) {
         audioRef.current.pause();
       }
     };
   }, []);
-
-  const handleSpeechToSanta = async (transcript: string) => {
-    setIsListening(false);
-
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/santa-chat`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: transcript,
-            question: questionData.question,
-            answerA: questionData.answerA,
-            answerB: questionData.answerB,
-            answerC: questionData.answerC,
-            answerD: questionData.answerD,
-          }),
-        }
-      );
-
-      const data = await response.json();
-      if (data.response && data.audio) {
-        playAudio(data.audio);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
 
   const playAudio = (audioArray: number[]) => {
     if (audioRef.current) {
