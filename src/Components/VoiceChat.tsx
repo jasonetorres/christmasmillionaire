@@ -23,6 +23,8 @@ export function VoiceChat({ friendName, questionData, onEnd }: VoiceChatProps) {
   const audioContextRef = useRef<AudioContext | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const processorRef = useRef<ScriptProcessorNode | null>(null);
+  const audioQueueRef = useRef<Uint8Array[]>([]);
+  const isPlayingRef = useRef(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -142,16 +144,48 @@ export function VoiceChat({ friendName, questionData, onEnd }: VoiceChatProps) {
   const playAudio = async (audioData: Uint8Array) => {
     if (!audioContextRef.current) return;
 
-    try {
-      const arrayBuffer = audioData.buffer.slice(0) as ArrayBuffer;
-      const audioBuffer = await audioContextRef.current.decodeAudioData(arrayBuffer);
-      const source = audioContextRef.current.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContextRef.current.destination);
-      source.start();
-    } catch (error) {
-      console.error('Error playing audio:', error);
+    audioQueueRef.current.push(audioData);
+
+    if (!isPlayingRef.current) {
+      isPlayingRef.current = true;
+      await processAudioQueue();
     }
+  };
+
+  const processAudioQueue = async () => {
+    while (audioQueueRef.current.length > 0) {
+      const audioData = audioQueueRef.current.shift();
+      if (audioData && audioContextRef.current) {
+        try {
+          const int16Array = new Int16Array(audioData.buffer);
+          const float32Array = new Float32Array(int16Array.length);
+
+          for (let i = 0; i < int16Array.length; i++) {
+            float32Array[i] = int16Array[i] / 32768.0;
+          }
+
+          const audioBuffer = audioContextRef.current.createBuffer(
+            1,
+            float32Array.length,
+            24000
+          );
+
+          audioBuffer.getChannelData(0).set(float32Array);
+
+          const source = audioContextRef.current.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(audioContextRef.current.destination);
+
+          await new Promise<void>((resolve) => {
+            source.onended = () => resolve();
+            source.start();
+          });
+        } catch (error) {
+          console.error('Error playing audio:', error);
+        }
+      }
+    }
+    isPlayingRef.current = false;
   };
 
   const toggleMute = () => {
