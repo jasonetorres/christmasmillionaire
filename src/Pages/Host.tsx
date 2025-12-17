@@ -174,6 +174,30 @@ export default function Host() {
       active_lifeline: 'phone',
       friend_name: 'Santa Claus',
     });
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/initiate-phone-friend`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          question: currentQuestion.question,
+          answerA: currentQuestion.answer_a,
+          answerB: currentQuestion.answer_b,
+          answerC: currentQuestion.answer_c,
+          answerD: currentQuestion.answer_d,
+          correctAnswer: currentQuestion.correct_answer,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('Failed to initiate phone call');
+      }
+    } catch (error) {
+      console.error('Error initiating phone call:', error);
+    }
   };
 
   const handleAskAudience = async () => {
