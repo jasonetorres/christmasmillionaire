@@ -170,7 +170,7 @@ export function VoiceChat({ friendName, questionData, onEnd }: VoiceChatProps) {
       <div className="relative w-full max-w-sm mx-4">
         <div className="text-center mb-4">
           <p className="text-white/70 text-sm font-medium">Phone a Friend</p>
-          <p className="text-white/50 text-xs">powered by Twilio</p>
+          <p className="text-white/50 text-xs">Voice-powered by OpenAI</p>
         </div>
 
         <div className="bg-gradient-to-b from-gray-900 to-black rounded-[3rem] p-8 shadow-2xl border-8 border-gray-800">

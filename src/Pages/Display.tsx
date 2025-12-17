@@ -4,7 +4,7 @@ import { TriviaQuestion, GameState } from '../types';
 import { MoneyLadder } from '../Components/MoneyLadder';
 import { QuestionDisplay } from '../Components/QuestionDisplay';
 import { QRCodeSVG } from 'qrcode.react';
-import { PhoneCallSimulator } from '../Components/PhoneCallSimulator';
+import { VoiceChat } from '../Components/VoiceChat';
 
 const Celebration = ({ isWin = false }: { isWin?: boolean }) => {
   const particles = Array.from({ length: isWin ? 100 : 50 }, (_, i) => ({
@@ -223,9 +223,17 @@ export default function Display() {
         </div>
       </div>
 
-      {gameState.active_lifeline === 'phone' && (
-        <PhoneCallSimulator
+      {gameState.active_lifeline === 'phone' && currentQuestion && (
+        <VoiceChat
           friendName={gameState.friend_name || 'Santa Claus'}
+          questionData={{
+            question: currentQuestion.question,
+            answerA: currentQuestion.answer_a,
+            answerB: currentQuestion.answer_b,
+            answerC: currentQuestion.answer_c,
+            answerD: currentQuestion.answer_d,
+            correctAnswer: currentQuestion.correct_answer,
+          }}
           onEnd={async () => {
             if (gameState?.id) {
               await supabase

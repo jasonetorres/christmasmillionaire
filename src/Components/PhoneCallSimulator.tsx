@@ -55,7 +55,7 @@ export function PhoneCallSimulator({ friendName, onEnd }: PhoneCallSimulatorProp
 
             <h2 className="text-white text-3xl font-semibold mb-2">{friendName}</h2>
             <p className="text-white/60 text-sm">North Pole</p>
-            <p className="text-white/40 text-xs mt-4">Twilio is handling the call on your local server</p>
+            <p className="text-white/40 text-xs mt-4">Call in progress</p>
           </div>
 
           <div className="flex justify-center">
