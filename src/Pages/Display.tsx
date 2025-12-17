@@ -4,6 +4,7 @@ import { TriviaQuestion, GameState } from '../types';
 import { MoneyLadder } from '../Components/MoneyLadder';
 import { QuestionDisplay } from '../Components/QuestionDisplay';
 import { QRCodeSVG } from 'qrcode.react';
+import { PhoneCallScreen } from '../Components/PhoneCallScreen';
 
 const Celebration = ({ isWin = false }: { isWin?: boolean }) => {
   const particles = Array.from({ length: isWin ? 100 : 50 }, (_, i) => ({
@@ -223,17 +224,24 @@ export default function Display() {
       </div>
 
       {gameState.active_lifeline === 'phone' && currentQuestion && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="bg-gradient-to-br from-blue-900 to-blue-950 border-4 border-yellow-500 rounded-2xl p-12 max-w-2xl mx-4 text-center shadow-2xl">
-            <h2 className="text-5xl font-bold text-white mb-6">📞 Phone a Friend</h2>
-            <p className="text-2xl text-gray-200 mb-4">
-              Calling Santa Claus...
-            </p>
-            <p className="text-xl text-gray-400">
-              Voice chat feature coming soon!
-            </p>
-          </div>
-        </div>
+        <PhoneCallScreen
+          questionData={{
+            question: currentQuestion.question,
+            answerA: currentQuestion.answer_a,
+            answerB: currentQuestion.answer_b,
+            answerC: currentQuestion.answer_c,
+            answerD: currentQuestion.answer_d,
+            correctAnswer: currentQuestion.correct_answer,
+          }}
+          onEnd={async () => {
+            if (gameState?.id) {
+              await supabase
+                .from('game_state')
+                .update({ active_lifeline: null })
+                .eq('id', gameState.id);
+            }
+          }}
+        />
       )}
     </div>
   );
