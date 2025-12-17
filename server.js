@@ -17,7 +17,7 @@ const fastify = Fastify();
 fastify.register(fastifyFormBody);
 fastify.register(fastifyWs);
 
-// Santa's Persona and Realtime Config
+// Santa's Persona
 const VOICE = 'alloy';
 const SYSTEM_MESSAGE = `You are a jolly Santa Claus helping a contestant on "Who Wants to Be a Christmasaire". 
 You are warm, festive, and a bit jolly (Ho ho ho!). 
@@ -25,9 +25,16 @@ You have been given the question and the correct answer.
 Guide the contestant through your thought process, maybe mention the reindeer or the North Pole, 
 and eventually lead them toward the correct answer with festive encouragement.`;
 
-fastify.register(async (fastify) => {
-    fastify.get('/media-stream', { websocket: true }, (connection, req) => {
-        console.log('Twilio connected to Media Stream');
+// The Unified Route: Handles both plain HTTP (for testing) and WebSocket (for Twilio)
+fastify.route({
+    method: ['GET', 'POST'],
+    url: '/media-stream',
+    handler: async (request, reply) => {
+        console.log('HTTP Handshake: Bridge is reachable!');
+        return { status: "Santa Bridge is active. Send a WebSocket to start the stream." };
+    },
+    wsHandler: (connection, req) => {
+        console.log('--- SUCCESS: Twilio connected to Media Stream ---');
 
         let streamSid = null;
 
@@ -41,6 +48,7 @@ fastify.register(async (fastify) => {
 
         // Initialize the AI Session
         const initializeSession = () => {
+            console.log('OpenAI connection opened. Initializing session...');
             const sessionUpdate = {
                 type: 'session.update',
                 session: {
@@ -60,42 +68,46 @@ fastify.register(async (fastify) => {
 
         // Relay OpenAI Audio -> Twilio
         openaiWs.on('message', (data) => {
-            const response = JSON.parse(data);
-            if (response.type === 'response.audio.delta' && response.delta) {
-                const audioDelta = {
-                    event: 'media',
-                    streamSid: streamSid,
-                    media: { payload: response.delta }
-                };
-                connection.send(JSON.stringify(audioDelta));
-            }
+            try {
+                const response = JSON.parse(data);
+                if (response.type === 'response.audio.delta' && response.delta) {
+                    const audioDelta = {
+                        event: 'media',
+                        streamSid: streamSid,
+                        media: { payload: response.delta }
+                    };
+                    connection.send(JSON.stringify(audioDelta));
+                }
+            } catch (err) { console.error('Error processing OpenAI message:', err); }
         });
 
         // Relay Twilio Audio -> OpenAI
         connection.on('message', (message) => {
-            const data = JSON.parse(message);
-            if (data.event === 'start') {
-                streamSid = data.start.streamSid;
-                console.log('Stream started:', streamSid);
-            } else if (data.event === 'media') {
-                const audioAppend = {
-                    type: 'input_audio_buffer.append',
-                    audio: data.media.payload
-                };
-                if (openaiWs.readyState === WebSocket.OPEN) {
-                    openaiWs.send(JSON.stringify(audioAppend));
+            try {
+                const data = JSON.parse(message);
+                if (data.event === 'start') {
+                    streamSid = data.start.streamSid;
+                    console.log('Stream started:', streamSid);
+                } else if (data.event === 'media') {
+                    const audioAppend = {
+                        type: 'input_audio_buffer.append',
+                        audio: data.media.payload
+                    };
+                    if (openaiWs.readyState === WebSocket.OPEN) {
+                        openaiWs.send(JSON.stringify(audioAppend));
+                    }
                 }
-            }
+            } catch (err) { console.error('Error processing Twilio message:', err); }
         });
 
         connection.on('close', () => {
             if (openaiWs.readyState === WebSocket.OPEN) openaiWs.close();
             console.log('Call ended');
         });
-    });
+    }
 });
 
-fastify.listen({ port: PORT }, (err) => {
+fastify.listen({ port: parseInt(PORT), host: '0.0.0.0' }, (err) => {
     if (err) {
         console.error(err);
         process.exit(1);
