@@ -1,5 +1,4 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { WebSocket as WSClient } from "npm:ws@8.18.0";
 
 const OPENAI_REALTIME_MODEL = "gpt-4o-realtime-preview-2024-12-17";
 
@@ -27,109 +26,121 @@ Deno.serve(async (req: Request) => {
 
     const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
     if (!openaiApiKey) {
-      console.error("OPENAI_API_KEY not configured in edge function secrets");
-      return new Response("OpenAI API key not configured. Please set OPENAI_API_KEY in your Supabase project secrets.", {
+      console.error("OPENAI_API_KEY not configured");
+      return new Response("OpenAI API key not configured", {
         status: 500,
         headers: corsHeaders
       });
     }
 
-    console.log("Upgrading to WebSocket connection");
+    console.log("Starting WebSocket upgrade for client");
     const { socket: clientWs, response } = Deno.upgradeWebSocket(req);
-    let openaiWs: any = null;
+    let openaiWs: WebSocket | null = null;
     let sessionConfigured = false;
 
     clientWs.onopen = async () => {
-      console.log("Client WebSocket connected");
+      console.log("Client WebSocket connected successfully");
 
       try {
         const openaiUrl = `wss://api.openai.com/v1/realtime?model=${OPENAI_REALTIME_MODEL}`;
-
-        openaiWs = new WSClient(openaiUrl, {
+        console.log("Attempting to connect to OpenAI at:", openaiUrl);
+        
+        const openaiReq = new Request(openaiUrl, {
           headers: {
             "Authorization": `Bearer ${openaiApiKey}`,
-            "OpenAI-Beta": "realtime=v1"
-          }
+            "OpenAI-Beta": "realtime=v1",
+          },
         });
 
-        openaiWs.on('open', () => {
-          console.log("OpenAI WebSocket connected");
-        });
+        console.log("Fetching OpenAI WebSocket connection...");
+        const openaiRes = await fetch(openaiReq);
+        
+        console.log("OpenAI response status:", openaiRes.status);
+        console.log("OpenAI response headers:", Object.fromEntries(openaiRes.headers.entries()));
 
-        openaiWs.on('message', (data: any) => {
-          try {
-            const message = JSON.parse(data.toString());
+        if (openaiRes.status === 101 && openaiRes.webSocket) {
+          console.log("Got WebSocket from response");
+          openaiWs = openaiRes.webSocket;
+          openaiWs.accept();
+          console.log("Accepted OpenAI WebSocket");
 
-            if (message.type === "session.created") {
-              console.log("Session created");
-            } else if (message.type === "session.updated") {
-              console.log("Session updated");
-              if (clientWs.readyState === WebSocket.OPEN) {
-                clientWs.send(JSON.stringify({ type: "session.ready" }));
+          openaiWs.onopen = () => {
+            console.log("OpenAI WebSocket opened!");
+          };
+
+          openaiWs.onmessage = (event) => {
+            try {
+              console.log("Received message from OpenAI:", typeof event.data);
+              const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+              console.log("OpenAI message type:", data.type);
+
+              if (data.type === "session.created") {
+                console.log("Session created successfully");
+              } else if (data.type === "session.updated") {
+                console.log("Session updated successfully");
+                if (clientWs.readyState === WebSocket.OPEN) {
+                  clientWs.send(JSON.stringify({ type: "session.ready" }));
+                }
+              } else if (data.type === "response.audio.delta" && data.delta) {
+                if (clientWs.readyState === WebSocket.OPEN) {
+                  clientWs.send(JSON.stringify({
+                    type: "audio.delta",
+                    audio: data.delta
+                  }));
+                }
+              } else if (data.type === "response.audio_transcript.done") {
+                console.log("Transcript:", data.transcript);
+                if (clientWs.readyState === WebSocket.OPEN) {
+                  clientWs.send(JSON.stringify({
+                    type: "transcript",
+                    text: data.transcript
+                  }));
+                }
+              } else if (data.type === "error") {
+                console.error("OpenAI error:", JSON.stringify(data));
+                if (clientWs.readyState === WebSocket.OPEN) {
+                  clientWs.send(JSON.stringify({
+                    type: "error",
+                    message: data.error?.message || "OpenAI error"
+                  }));
+                }
               }
-            } else if (message.type === "response.audio.delta" && message.delta) {
-              if (clientWs.readyState === WebSocket.OPEN) {
-                clientWs.send(JSON.stringify({
-                  type: "audio.delta",
-                  audio: message.delta
-                }));
-              }
-            } else if (message.type === "response.audio_transcript.done") {
-              console.log("OpenAI transcript:", message.transcript);
-              if (clientWs.readyState === WebSocket.OPEN) {
-                clientWs.send(JSON.stringify({
-                  type: "transcript",
-                  text: message.transcript
-                }));
-              }
-            } else if (message.type === "input_audio_buffer.speech_started") {
-              console.log("User started speaking");
-            } else if (message.type === "input_audio_buffer.speech_stopped") {
-              console.log("User stopped speaking");
-            } else if (message.type === "response.done") {
-              console.log("Response completed");
-            } else if (message.type === "error") {
-              console.error("OpenAI error:", message);
-              if (clientWs.readyState === WebSocket.OPEN) {
-                clientWs.send(JSON.stringify({
-                  type: "error",
-                  message: message.error?.message || "OpenAI error occurred"
-                }));
-              }
+            } catch (error) {
+              console.error("Error processing OpenAI message:", error);
             }
-          } catch (error) {
-            console.error("Error processing OpenAI message:", error);
-          }
-        });
+          };
 
-        openaiWs.on('error', (error: any) => {
-          console.error("OpenAI WebSocket error:", error);
-          if (clientWs.readyState === WebSocket.OPEN) {
-            clientWs.send(JSON.stringify({
-              type: "error",
-              message: "Failed to connect to OpenAI. Please verify your API key has access to the Realtime API."
-            }));
-            clientWs.close(1011, "OpenAI connection failed");
-          }
-        });
+          openaiWs.onerror = (error) => {
+            console.error("OpenAI WebSocket error:", error);
+            if (clientWs.readyState === WebSocket.OPEN) {
+              clientWs.send(JSON.stringify({
+                type: "error",
+                message: "OpenAI connection error"
+              }));
+              clientWs.close(1011);
+            }
+          };
 
-        openaiWs.on('close', (code: number, reason: string) => {
-          console.log("OpenAI WebSocket closed. Code:", code, "Reason:", reason);
-          if (code !== 1000) {
-            console.error("OpenAI closed with error. Code:", code);
-          }
-          if (clientWs.readyState === WebSocket.OPEN) {
-            clientWs.close();
-          }
-        });
+          openaiWs.onclose = (event) => {
+            console.log("OpenAI WebSocket closed. Code:", event.code, "Reason:", event.reason);
+            if (clientWs.readyState === WebSocket.OPEN) {
+              clientWs.close();
+            }
+          };
+        } else {
+          console.error("Failed to upgrade to WebSocket. Status:", openaiRes.status);
+          console.error("Response body:", await openaiRes.text());
+          throw new Error(`Failed to connect to OpenAI. Status: ${openaiRes.status}`);
+        }
       } catch (error) {
-        console.error("Error creating OpenAI WebSocket:", error);
+        console.error("Error connecting to OpenAI:", error);
+        console.error("Error stack:", error.stack);
         if (clientWs.readyState === WebSocket.OPEN) {
           clientWs.send(JSON.stringify({
             type: "error",
-            message: `Failed to connect to OpenAI: ${error.message}`
+            message: `Failed to connect: ${error.message}`
           }));
-          clientWs.close(1011, "Failed to connect to OpenAI");
+          clientWs.close(1011);
         }
       }
     };
@@ -137,15 +148,16 @@ Deno.serve(async (req: Request) => {
     clientWs.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
+        console.log("Received from client:", message.type);
 
         if (message.type === "session.config" && !sessionConfigured) {
           sessionConfigured = true;
           const questionData = message.questionData;
 
-          let instructions = `You are Santa Claus helping a contestant on the game show "Who Wants to Be a Christmasaire". You are jolly, warm, and festive. Start with "Ho ho ho!" or another cheerful Christmas greeting. Be conversational and natural.`;
+          let instructions = `You are Santa Claus helping a contestant on "Who Wants to Be a Christmasaire". Be jolly, warm, and festive. Start with "Ho ho ho!" or a cheerful Christmas greeting.`;
 
           if (questionData) {
-            instructions += `\n\nThe contestant is calling you for help with this question:\nQuestion: ${questionData.question}\nA) ${questionData.answerA}\nB) ${questionData.answerB}\nC) ${questionData.answerC}\nD) ${questionData.answerD}\n\nThe correct answer is ${questionData.correctAnswer}.\n\nThink out loud in Santa's character, show some reasoning, maybe express gentle uncertainty or get "distracted by the elves" to build tension, but ultimately guide them warmly toward the correct answer. Keep your response concise. Be encouraging and add Christmas spirit!`;
+            instructions += `\n\nThe contestant needs help with:\nQuestion: ${questionData.question}\nA) ${questionData.answerA}\nB) ${questionData.answerB}\nC) ${questionData.answerC}\nD) ${questionData.answerD}\n\nCorrect answer: ${questionData.correctAnswer}\n\nThink out loud as Santa, show reasoning, maybe get "distracted by elves" for tension, but guide them to the correct answer. Be concise and add Christmas spirit!`;
           }
 
           const sessionUpdate = {
@@ -170,18 +182,17 @@ Deno.serve(async (req: Request) => {
             }
           };
 
-          if (openaiWs && openaiWs.readyState === 1) {
+          if (openaiWs?.readyState === WebSocket.OPEN) {
+            console.log("Sending session.update to OpenAI");
             openaiWs.send(JSON.stringify(sessionUpdate));
-            console.log("Session configured with Santa persona");
           } else {
-            console.error("OpenAI WebSocket not ready for session config");
+            console.error("OpenAI WebSocket not ready. State:", openaiWs?.readyState);
           }
-        } else if (message.type === "audio.input" && openaiWs && openaiWs.readyState === 1) {
-          const audioAppend = {
+        } else if (message.type === "audio.input" && openaiWs?.readyState === WebSocket.OPEN) {
+          openaiWs.send(JSON.stringify({
             type: "input_audio_buffer.append",
             audio: message.audio
-          };
-          openaiWs.send(JSON.stringify(audioAppend));
+          }));
         }
       } catch (error) {
         console.error("Error processing client message:", error);
@@ -194,15 +205,16 @@ Deno.serve(async (req: Request) => {
 
     clientWs.onclose = () => {
       console.log("Client WebSocket closed");
-      if (openaiWs && openaiWs.readyState === 1) {
+      if (openaiWs?.readyState === WebSocket.OPEN) {
         openaiWs.close();
       }
     };
 
     return response;
   } catch (error) {
-    console.error("Error in voice-chat function:", error);
-    return new Response(JSON.stringify({ error: "Internal server error", details: String(error) }), {
+    console.error("Top-level error:", error);
+    console.error("Error stack:", error.stack);
+    return new Response(JSON.stringify({ error: String(error) }), {
       status: 500,
       headers: {
         ...corsHeaders,
