@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { Phone, Mic, MicOff } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 interface PhoneCallScreenProps {
   questionData: {
@@ -24,185 +23,19 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // If this is the host view, just show simple controls
+  // If this is the host view, just show a simple status indicator
   if (isHost) {
-    useEffect(() => {
-      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        recognitionRef.current = new SpeechRecognition();
-        recognitionRef.current.continuous = false;
-        recognitionRef.current.interimResults = true;
-        recognitionRef.current.lang = 'en-US';
-
-        recognitionRef.current.onstart = () => {
-          setIsListening(true);
-        };
-
-        recognitionRef.current.onresult = (event: any) => {
-          const transcript = Array.from(event.results)
-            .map((result: any) => result[0])
-            .map((result: any) => result.transcript)
-            .join('');
-
-          if (event.results[event.results.length - 1].isFinal) {
-            handleSpeechToSanta(transcript);
-          }
-        };
-
-        recognitionRef.current.onend = () => {
-          setIsListening(false);
-        };
-      }
-
-      // Send initial greeting
-      const initialGreeting = async () => {
-        if (hasGreeted) return;
-        setHasGreeted(true);
-
-        try {
-          const response = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/santa-chat`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                message: 'Hi Santa! Thanks for taking my call!',
-                question: questionData.question,
-                answerA: questionData.answerA,
-                answerB: questionData.answerB,
-                answerC: questionData.answerC,
-                answerD: questionData.answerD,
-              }),
-            }
-          );
-
-          const data = await response.json();
-          if (data.response && data.audio) {
-            // Update game_state with audio data for display to pick up
-            const { data: gameStateData } = await supabase
-              .from('game_state')
-              .select('id')
-              .order('updated_at', { ascending: false })
-              .limit(1)
-              .maybeSingle();
-
-            if (gameStateData) {
-              await supabase
-                .from('game_state')
-                .update({
-                  santa_audio_data: data.audio,
-                  santa_audio_timestamp: Date.now()
-                })
-                .eq('id', gameStateData.id);
-            }
-          }
-        } catch (error) {
-          console.error('Error:', error);
-        }
-      };
-
-      initialGreeting();
-
-      return () => {
-        if (recognitionRef.current) {
-          recognitionRef.current.stop();
-        }
-      };
-    }, []);
-
-    const handleSpeechToSanta = async (transcript: string) => {
-      setIsListening(false);
-
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/santa-chat`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              message: transcript,
-              question: questionData.question,
-              answerA: questionData.answerA,
-              answerB: questionData.answerB,
-              answerC: questionData.answerC,
-              answerD: questionData.answerD,
-            }),
-          }
-        );
-
-        const data = await response.json();
-        if (data.response && data.audio) {
-          // Update game_state with audio data for display to pick up
-          const { data: gameStateData } = await supabase
-            .from('game_state')
-            .select('id')
-            .order('updated_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          if (gameStateData) {
-            await supabase
-              .from('game_state')
-              .update({
-                santa_audio_data: data.audio,
-                santa_audio_timestamp: Date.now()
-              })
-              .eq('id', gameStateData.id);
-          }
-        }
-      } catch (error) {
-        console.error('Error:', error);
-      }
-    };
-
-    const toggleListening = () => {
-      if (isListening) {
-        recognitionRef.current?.stop();
-        setIsListening(false);
-      } else {
-        recognitionRef.current?.start();
-      }
-    };
-
     return (
       <div className="fixed bottom-8 right-8 z-50">
         <div className="bg-gradient-to-br from-red-900 to-red-950 border-2 border-red-500 rounded-xl p-6 shadow-2xl">
           <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center text-2xl">
+            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-700 rounded-full flex items-center justify-center text-2xl animate-pulse">
               🎅
             </div>
             <div>
               <p className="text-white font-bold text-lg">Phone a Friend</p>
               <p className="text-green-400 text-sm">Active on Display</p>
             </div>
-          </div>
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={toggleListening}
-              className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all flex items-center justify-center gap-2 ${
-                isListening
-                  ? 'bg-red-500 hover:bg-red-600 text-white'
-                  : 'bg-green-600 hover:bg-green-700 text-white'
-              }`}
-            >
-              {isListening ? (
-                <>
-                  <MicOff className="w-4 h-4" />
-                  Stop
-                </>
-              ) : (
-                <>
-                  <Mic className="w-4 h-4" />
-                  Speak
-                </>
-              )}
-            </button>
           </div>
           <button
             onClick={onEnd}
@@ -216,39 +49,128 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
     );
   }
 
+  // Display view - handles both microphone input and audio output
   useEffect(() => {
+    // Setup speech recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = 'en-US';
+
+      recognitionRef.current.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = Array.from(event.results)
+          .map((result: any) => result[0])
+          .map((result: any) => result.transcript)
+          .join('');
+
+        if (event.results[event.results.length - 1].isFinal) {
+          handleSpeechToSanta(transcript);
+        }
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+
+    // Send initial greeting
+    const initialGreeting = async () => {
+      if (hasGreeted) return;
+      setHasGreeted(true);
+
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/santa-chat`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: 'Hi Santa! Thanks for taking my call!',
+              question: questionData.question,
+              answerA: questionData.answerA,
+              answerB: questionData.answerB,
+              answerC: questionData.answerC,
+              answerD: questionData.answerD,
+            }),
+          }
+        );
+
+        const data = await response.json();
+        if (data.response && data.audio) {
+          playAudio(data.audio);
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    };
+
+    initialGreeting();
+
+    // Setup call duration timer
     const timer = setInterval(() => {
       setCallDuration(prev => prev + 1);
     }, 1000);
 
-    let lastAudioTimestamp = 0;
-
-    // Listen for audio updates from game_state
-    const channel = supabase
-      .channel('santa-audio')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'game_state'
-      }, (payload) => {
-        const newData = payload.new as any;
-        if (newData.santa_audio_data && newData.santa_audio_timestamp) {
-          if (newData.santa_audio_timestamp > lastAudioTimestamp) {
-            lastAudioTimestamp = newData.santa_audio_timestamp;
-            playAudio(newData.santa_audio_data);
-          }
-        }
-      })
-      .subscribe();
-
     return () => {
       clearInterval(timer);
-      supabase.removeChannel(channel);
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
       if (audioRef.current) {
         audioRef.current.pause();
       }
     };
   }, []);
+
+  const handleSpeechToSanta = async (transcript: string) => {
+    setIsListening(false);
+
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/santa-chat`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: transcript,
+            question: questionData.question,
+            answerA: questionData.answerA,
+            answerB: questionData.answerB,
+            answerC: questionData.answerC,
+            answerD: questionData.answerD,
+          }),
+        }
+      );
+
+      const data = await response.json();
+      if (data.response && data.audio) {
+        playAudio(data.audio);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  };
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    } else {
+      recognitionRef.current?.start();
+    }
+  };
 
   const playAudio = (audioArray: number[]) => {
     if (audioRef.current) {
@@ -333,17 +255,25 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
             <p className="text-white text-2xl font-light">{formatDuration(callDuration)}</p>
           </div>
 
-          {/* Call Controls - Display Only */}
+          {/* Call Controls with Microphone Button */}
           <div className="mt-auto space-y-8">
             <div className="grid grid-cols-3 gap-8 mb-8">
-              <button className="flex flex-col items-center opacity-50">
-                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
-                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-                    <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-                  </svg>
+              <button
+                onClick={toggleListening}
+                className={`flex flex-col items-center transition-all ${
+                  isListening ? 'opacity-100' : 'opacity-50'
+                }`}
+              >
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 ${
+                  isListening ? 'bg-red-600' : 'bg-gray-700'
+                }`}>
+                  {isListening ? (
+                    <MicOff className="w-7 h-7 text-white" />
+                  ) : (
+                    <Mic className="w-7 h-7 text-white" />
+                  )}
                 </div>
-                <span className="text-white text-xs">mute</span>
+                <span className="text-white text-xs">{isListening ? 'listening...' : 'speak'}</span>
               </button>
 
               <button className="flex flex-col items-center opacity-50">
@@ -391,6 +321,16 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
                   </svg>
                 </div>
                 <span className="text-white text-xs">contacts</span>
+              </button>
+            </div>
+
+            {/* End Call Button */}
+            <div className="flex justify-center pt-4">
+              <button
+                onClick={onEnd}
+                className="w-20 h-20 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center shadow-2xl transition-all"
+              >
+                <Phone className="w-10 h-10 text-white transform rotate-[135deg]" />
               </button>
             </div>
           </div>
