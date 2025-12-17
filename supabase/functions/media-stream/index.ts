@@ -1,69 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-async function getAIResponse(question: string, answerA: string, answerB: string, answerC: string, answerD: string, correctAnswer: string): Promise<string> {
-  const anthropicApiKey = Deno.env.get("ANTHROPIC_API_KEY");
-  const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
-  
-  if (!anthropicApiKey && !openaiApiKey) {
-    return "Ho ho ho! Well now, let me check my list here. I'm thinking it might be one of the middle options, my dear friend!";
-  }
-
-  const prompt = `You are Santa Claus being called during a game show "Who Wants to Be a Christmasaire". The contestant has called you for help with this question:
-
-Question: ${question}
-A) ${answerA}
-B) ${answerB}
-C) ${answerC}
-D) ${answerD}
-
-The correct answer is ${correctAnswer}.
-
-Respond as Santa Claus - jovial, warm, and festive. Start with "Ho ho ho!" or a Christmas greeting. Think out loud in Santa's character, show some reasoning, maybe express gentle uncertainty, then lean toward the correct answer. Keep it under 50 words, sound natural and jolly. Don't use any special formatting or markdown. Be encouraging and add Christmas spirit!`;
-
-  try {
-    if (openaiApiKey) {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${openaiApiKey}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-4",
-          messages: [{
-            role: "user",
-            content: prompt,
-          }],
-          max_tokens: 150,
-        }),
-      });
-      const data = await response.json();
-      return data.choices[0].message.content;
-    } else {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": anthropicApiKey,
-          "anthropic-version": "2023-06-01",
-        },
-        body: JSON.stringify({
-          model: "claude-3-5-sonnet-20241022",
-          max_tokens: 150,
-          messages: [{
-            role: "user",
-            content: prompt,
-          }],
-        }),
-      });
-      const data = await response.json();
-      return data.content[0].text;
-    }
-  } catch (error) {
-    console.error("AI Error:", error);
-    return `Ho ho ho! Let me think about this one. Looking at my list, I'm quite confident the answer is ${correctAnswer}. Yes indeed, I'd go with ${correctAnswer}. Merry Christmas!`;
-  }
-}
+const OPENAI_REALTIME_URL = "wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17";
 
 Deno.serve(async (req: Request) => {
   try {
@@ -74,51 +11,140 @@ Deno.serve(async (req: Request) => {
       return new Response("Expected websocket connection", { status: 426 });
     }
 
-    const { socket, response } = Deno.upgradeWebSocket(req);
+    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+    if (!openaiApiKey) {
+      console.error("OPENAI_API_KEY not configured");
+      return new Response("Server configuration error", { status: 500 });
+    }
 
-    socket.onopen = () => {
-      console.log("WebSocket connected");
+    const { socket: twilioWs, response } = Deno.upgradeWebSocket(req);
+    let openaiWs: WebSocket | null = null;
+    let streamSid: string | null = null;
+
+    twilioWs.onopen = () => {
+      console.log("Twilio WebSocket connected");
+
+      openaiWs = new WebSocket(OPENAI_REALTIME_URL, {
+        headers: {
+          "Authorization": `Bearer ${openaiApiKey}`,
+          "OpenAI-Beta": "realtime=v1"
+        }
+      });
+
+      openaiWs.onopen = () => {
+        console.log("OpenAI WebSocket connected");
+
+        let instructions = `You are Santa Claus helping a contestant on the game show "Who Wants to Be a Christmasaire". You are jolly, warm, and festive. Start with "Ho ho ho!" or another cheerful Christmas greeting. Be conversational and natural.`;
+
+        if (questionDataParam) {
+          try {
+            const questionData = JSON.parse(decodeURIComponent(questionDataParam));
+            const { question, answerA, answerB, answerC, answerD, correctAnswer } = questionData;
+
+            instructions += `\n\nThe contestant is calling you for help with this question:\nQuestion: ${question}\nA) ${answerA}\nB) ${answerB}\nC) ${answerC}\nD) ${answerD}\n\nThe correct answer is ${correctAnswer}.\n\nThink out loud in Santa's character, show some reasoning, maybe express gentle uncertainty or get "distracted by the elves" to build tension, but ultimately guide them warmly toward the correct answer. Keep your response under 50 words. Be encouraging and add Christmas spirit!`;
+          } catch (error) {
+            console.error("Error parsing question data:", error);
+          }
+        }
+
+        const sessionUpdate = {
+          type: "session.update",
+          session: {
+            modalities: ["text", "audio"],
+            instructions: instructions,
+            voice: "alloy",
+            input_audio_format: "g711_ulaw",
+            output_audio_format: "g711_ulaw",
+            input_audio_transcription: {
+              model: "whisper-1"
+            },
+            turn_detection: {
+              type: "server_vad",
+              threshold: 0.5,
+              prefix_padding_ms: 300,
+              silence_duration_ms: 500
+            },
+            temperature: 0.8,
+            max_response_output_tokens: 4096
+          }
+        };
+
+        openaiWs?.send(JSON.stringify(sessionUpdate));
+        console.log("Session configured");
+      };
+
+      openaiWs.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.type === "response.audio.delta" && data.delta) {
+            if (streamSid) {
+              twilioWs.send(JSON.stringify({
+                event: "media",
+                streamSid: streamSid,
+                media: {
+                  payload: data.delta
+                }
+              }));
+            }
+          } else if (data.type === "response.audio_transcript.done") {
+            console.log("OpenAI transcript:", data.transcript);
+          } else if (data.type === "input_audio_buffer.speech_started") {
+            console.log("User started speaking");
+          } else if (data.type === "input_audio_buffer.speech_stopped") {
+            console.log("User stopped speaking");
+          } else if (data.type === "response.done") {
+            console.log("Response completed");
+          } else if (data.type === "error") {
+            console.error("OpenAI error:", data);
+          }
+        } catch (error) {
+          console.error("Error processing OpenAI message:", error);
+        }
+      };
+
+      openaiWs.onerror = (error) => {
+        console.error("OpenAI WebSocket error:", error);
+      };
+
+      openaiWs.onclose = () => {
+        console.log("OpenAI WebSocket closed");
+      };
     };
 
-    socket.onmessage = async (event) => {
+    twilioWs.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        console.log("Received message:", message.event);
 
         if (message.event === "start") {
-          console.log("Stream started");
-          
-          if (questionDataParam) {
-            const questionData = JSON.parse(decodeURIComponent(questionDataParam));
-            const { question, answerA, answerB, answerC, answerD, correctAnswer, aiResponse: preGeneratedResponse } = questionData;
-            
-            const aiResponse = preGeneratedResponse || await getAIResponse(question, answerA, answerB, answerC, answerD, correctAnswer);
-            
-            console.log("AI Response:", aiResponse);
-            
-            socket.send(JSON.stringify({
-              event: "media",
-              media: {
-                payload: btoa(aiResponse)
-              }
-            }));
-          }
-        } else if (message.event === "media") {
-          console.log("Received audio data");
+          streamSid = message.start.streamSid;
+          console.log("Stream started:", streamSid);
+        } else if (message.event === "media" && openaiWs?.readyState === WebSocket.OPEN) {
+          const audioAppend = {
+            type: "input_audio_buffer.append",
+            audio: message.media.payload
+          };
+          openaiWs.send(JSON.stringify(audioAppend));
         } else if (message.event === "stop") {
           console.log("Stream stopped");
+          if (openaiWs?.readyState === WebSocket.OPEN) {
+            openaiWs.close();
+          }
         }
       } catch (error) {
-        console.error("Error processing message:", error);
+        console.error("Error processing Twilio message:", error);
       }
     };
 
-    socket.onerror = (error) => {
-      console.error("WebSocket error:", error);
+    twilioWs.onerror = (error) => {
+      console.error("Twilio WebSocket error:", error);
     };
 
-    socket.onclose = () => {
-      console.log("WebSocket closed");
+    twilioWs.onclose = () => {
+      console.log("Twilio WebSocket closed");
+      if (openaiWs?.readyState === WebSocket.OPEN) {
+        openaiWs.close();
+      }
     };
 
     return response;
