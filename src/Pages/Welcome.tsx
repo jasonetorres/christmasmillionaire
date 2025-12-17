@@ -187,12 +187,7 @@ export default function Host() {
     const handlePhoneFriend = async () => {
         if (!gameState || !currentQuestion) return;
 
-        const phoneNumber = prompt("Enter your phone number (with country code, e.g., +1234567890):");
-
-        if (!phoneNumber) {
-            alert("Phone number is required to make a call!");
-            return;
-        }
+        const phoneNumber = '+18444937781';
 
         try {
             const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
