@@ -22,6 +22,11 @@ Deno.serve(async (req: Request) => {
       throw new Error('OpenAI API key not configured');
     }
 
+    const elevenlabsKey = Deno.env.get('ELEVENLABS_API_KEY');
+    if (!elevenlabsKey) {
+      throw new Error('ElevenLabs API key not configured');
+    }
+
     const systemPrompt = `You are the REAL Santa Claus - warm, wise, grandfatherly, with centuries of knowledge and a twinkle in your eye. You're helping a contestant on "Who Wants to Be a Christmasaire?" but you're not just reciting facts - you're sharing wisdom with genuine warmth and personality.
 
 YOUR SPEAKING STYLE:
@@ -82,23 +87,27 @@ Remember: You're the REAL Santa - knowledgeable, warm, genuine, and helpful. Mak
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
 
-    const ttsResponse = await fetch('https://api.openai.com/v1/audio/speech', {
+    // Use ElevenLabs for TTS with a warm, grandfatherly voice
+    const voiceId = 'pNInz6obpgDQGcFmaJgB'; // Adam - deep, warm voice perfect for Santa
+    const ttsResponse = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openaiKey}`,
+        'xi-api-key': elevenlabsKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'tts-1',
-        voice: 'echo',
-        input: aiResponse,
-        speed: 0.9,
+        text: aiResponse,
+        model_id: 'eleven_monolingual_v1',
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+        }
       }),
     });
 
     if (!ttsResponse.ok) {
       const error = await ttsResponse.text();
-      throw new Error(`OpenAI TTS API error: ${error}`);
+      throw new Error(`ElevenLabs TTS API error: ${error}`);
     }
 
     const audioBuffer = await ttsResponse.arrayBuffer();
