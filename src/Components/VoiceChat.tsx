@@ -51,14 +51,20 @@ export function VoiceChat({ friendName, questionData, onEnd }: VoiceChatProps) {
         wsRef.current = new WebSocket(wsUrl);
 
         wsRef.current.onopen = () => {
+          console.log('WebSocket opened, ready state:', wsRef.current?.readyState);
           setCallStatus('connected');
 
-          if (wsRef.current) {
-            wsRef.current.send(JSON.stringify({
-              type: 'session.config',
-              questionData: questionData
-            }));
-          }
+          setTimeout(() => {
+            if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+              console.log('Sending session config');
+              wsRef.current.send(JSON.stringify({
+                type: 'session.config',
+                questionData: questionData
+              }));
+            } else {
+              console.error('WebSocket not open when trying to send config');
+            }
+          }, 100);
         };
 
         wsRef.current.onmessage = (event) => {
@@ -84,12 +90,16 @@ export function VoiceChat({ friendName, questionData, onEnd }: VoiceChatProps) {
 
         wsRef.current.onerror = (error) => {
           console.error('WebSocket error:', error);
-          setCallStatus('connecting');
         };
 
         wsRef.current.onclose = (event) => {
+          console.log('WebSocket closed. Code:', event.code, 'Reason:', event.reason);
           if (event.code !== 1000) {
             console.error('WebSocket closed unexpectedly. Code:', event.code, 'Reason:', event.reason);
+            if (event.code === 1006) {
+              alert('Unable to connect to voice chat service. Please ensure OPENAI_API_KEY is configured in your Supabase project settings under Edge Functions > Secrets.');
+              onEnd();
+            }
           }
         };
 
