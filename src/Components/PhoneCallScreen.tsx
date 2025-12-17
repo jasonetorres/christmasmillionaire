@@ -139,7 +139,6 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
       if (audioRef.current) {
         audioRef.current.pause();
       }
-      window.speechSynthesis.cancel();
     };
   }, []);
 
@@ -172,8 +171,8 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
       }
     } catch (error) {
       console.error('Error:', error);
-      const fallbackText = 'Ho ho ho! Sorry, I seem to have lost connection from the North Pole. Can you repeat that?';
-      speakTextFallback(fallbackText);
+      setCurrentCaption('Network error. Please try again.');
+      setTimeout(() => setCurrentCaption(''), 3000);
     }
   };
 
@@ -205,47 +204,17 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
     audio.onerror = () => {
       console.error('Audio playback error');
       setIsSantaSpeaking(false);
-      speakTextFallback(text);
+      setSpeakerLabel('');
+      setCurrentCaption('Audio playback failed');
+      setTimeout(() => setCurrentCaption(''), 2000);
     };
 
     audioRef.current = audio;
     audio.play().catch(err => {
       console.error('Failed to play audio:', err);
-      speakTextFallback(text);
+      setCurrentCaption('Click to enable audio');
+      setTimeout(() => setCurrentCaption(''), 3000);
     });
-  };
-
-  const speakTextFallback = (text: string) => {
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9;
-    utterance.pitch = 1.1;
-    utterance.volume = 1;
-
-    const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(voice =>
-      voice.name.includes('Male') || voice.name.includes('Fred') || voice.name.includes('Alex')
-    );
-    if (preferredVoice) {
-      utterance.voice = preferredVoice;
-    }
-
-    utterance.onstart = () => {
-      setIsSantaSpeaking(true);
-      setSpeakerLabel('Santa');
-      setCurrentCaption(text);
-    };
-
-    utterance.onend = () => {
-      setIsSantaSpeaking(false);
-      setTimeout(() => {
-        setSpeakerLabel('');
-        setCurrentCaption('');
-      }, 2000);
-    };
-
-    window.speechSynthesis.speak(utterance);
   };
 
   const toggleListening = () => {
@@ -257,7 +226,6 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
         if (audioRef.current) {
           audioRef.current.pause();
         }
-        window.speechSynthesis.cancel();
         setIsSantaSpeaking(false);
       }
       recognitionRef.current?.start();
