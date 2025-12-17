@@ -43,10 +43,7 @@ export function VoiceChat({ friendName, questionData, onEnd }: VoiceChatProps) {
         const source = audioContextRef.current.createMediaStreamSource(stream);
         processorRef.current = audioContextRef.current.createScriptProcessor(2048, 1, 1);
 
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-        const wsUrl = `${supabaseUrl.replace('https://', 'wss://')}/functions/v1/voice-chat?apikey=${supabaseAnonKey}`;
+        const wsUrl = 'ws://localhost:5050/voice-chat';
 
         wsRef.current = new WebSocket(wsUrl);
 
@@ -101,7 +98,7 @@ export function VoiceChat({ friendName, questionData, onEnd }: VoiceChatProps) {
           if (event.code !== 1000) {
             console.error('WebSocket closed unexpectedly. Code:', event.code, 'Reason:', event.reason);
             if (event.code === 1006) {
-              alert('Unable to connect to voice chat service. Please ensure OPENAI_API_KEY is configured in your Supabase project settings under Edge Functions > Secrets.');
+              alert('Unable to connect to voice chat server. Please ensure:\n1. The Node.js server is running (npm run server)\n2. OPENAI_API_KEY is configured in your .env file');
               onEnd();
             }
           }

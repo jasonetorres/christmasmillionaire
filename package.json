@@ -5,7 +5,8 @@
     "scripts": {
         "build": "tsc && vite build",
         "dev": "vite",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "server": "node server.js"
     },
     "dependencies": {
         "@fastify/formbody": "^8.0.2",
