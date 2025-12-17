@@ -71,7 +71,11 @@ export function VoiceChat({ friendName, questionData, onEnd }: VoiceChatProps) {
           try {
             const data = JSON.parse(event.data);
 
-            if (data.type === 'session.ready') {
+            if (data.type === 'error') {
+              console.error('Server error:', data.message);
+              alert(data.message);
+              onEnd();
+            } else if (data.type === 'session.ready') {
               setCallStatus('talking');
             } else if (data.type === 'audio.delta' && data.audio) {
               const audioData = atob(data.audio);

@@ -17,11 +17,26 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    if (req.method === "GET" && req.headers.get("upgrade") !== "websocket") {
+      const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+      return new Response(JSON.stringify({
+        status: "ok",
+        openaiKeySet: !!openaiApiKey,
+        openaiKeyPreview: openaiApiKey ? openaiApiKey.slice(0, 10) + "..." : "not set"
+      }), {
+        status: 200,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json"
+        }
+      });
+    }
+
     if (req.headers.get("upgrade") !== "websocket") {
       console.error("Not a websocket request");
-      return new Response("Expected websocket connection", { 
+      return new Response("Expected websocket connection", {
         status: 426,
-        headers: corsHeaders 
+        headers: corsHeaders
       });
     }
 
@@ -96,10 +111,20 @@ Deno.serve(async (req: Request) => {
 
         openaiWs.onerror = (error) => {
           console.error("OpenAI WebSocket error:", error);
+          if (clientWs.readyState === WebSocket.OPEN) {
+            clientWs.send(JSON.stringify({
+              type: "error",
+              message: "Failed to connect to OpenAI. Please verify your API key has access to the Realtime API."
+            }));
+            clientWs.close(1011, "OpenAI connection failed");
+          }
         };
 
-        openaiWs.onclose = () => {
-          console.log("OpenAI WebSocket closed");
+        openaiWs.onclose = (event) => {
+          console.log("OpenAI WebSocket closed. Code:", event.code, "Reason:", event.reason);
+          if (event.code !== 1000) {
+            console.error("OpenAI closed with error. Code:", event.code);
+          }
           if (clientWs.readyState === WebSocket.OPEN) {
             clientWs.close();
           }
