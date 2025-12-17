@@ -244,74 +244,141 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
+  const currentTime = new Date().toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: false
+  });
+
   return (
-    <div className="fixed top-8 right-8 z-50">
-      <div className="w-[380px] bg-gradient-to-b from-gray-900 to-black rounded-[40px] shadow-2xl border-8 border-gray-800 overflow-hidden">
-        <div className="bg-black h-6 flex items-center justify-center">
-          <div className="w-20 h-5 bg-gray-900 rounded-full"></div>
+    <div className={`fixed z-50 ${isHost ? 'top-8 right-8' : 'inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm'}`}>
+      <div className="w-[390px] bg-black rounded-[55px] shadow-2xl overflow-hidden relative">
+        {/* iPhone Notch and Status Bar */}
+        <div className="bg-black px-8 pt-3 pb-2 relative">
+          <div className="flex items-center justify-between text-white text-sm font-semibold">
+            <span>{currentTime}</span>
+            <div className="absolute left-1/2 -translate-x-1/2 top-0 w-[120px] h-7 bg-black rounded-b-3xl"></div>
+            <div className="flex items-center gap-1">
+              <div className="flex gap-[2px]">
+                <div className="w-[3px] h-3 bg-white rounded-full"></div>
+                <div className="w-[3px] h-3 bg-white rounded-full"></div>
+                <div className="w-[3px] h-3 bg-white rounded-full"></div>
+                <div className="w-[3px] h-3 bg-white/60 rounded-full"></div>
+              </div>
+              <svg className="w-6 h-4 ml-1" viewBox="0 0 24 24" fill="white">
+                <path d="M2 17h20v2H2zm1.15-4.05L4 11.47l.85 1.48 1.3-.75-.85-1.48H7v-1.5H5.3l.85-1.47L4.85 7 4 8.47 3.15 7l-1.3.75.85 1.47H1v1.5h1.7l-.85 1.48 1.3.75zm9.85-.75l.85 1.48 1.3-.75-.85-1.48H16v-1.5h-1.7l.85-1.47-1.3-.75L13 8.47 12.15 7l-1.3.75.85 1.47H10v1.5h1.7l-.85 1.48 1.3.75zm-6 0l.85 1.48 1.3-.75-.85-1.48H10v-1.5H8.3l.85-1.47-1.3-.75L7 8.47 6.15 7l-1.3.75.85 1.47H4v1.5h1.7l-.85 1.48 1.3.75z"/>
+              </svg>
+              <div className="w-6 h-3 border-2 border-white rounded-sm relative">
+                <div className="absolute right-[-2px] top-1/2 -translate-y-1/2 w-[2px] h-2 bg-white"></div>
+                <div className="absolute inset-[2px] bg-white"></div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="bg-gradient-to-b from-gray-800 to-gray-900 p-8 min-h-[600px] flex flex-col">
-          <div className="text-center mb-8">
-            <div className={`w-32 h-32 mx-auto mb-4 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-6xl shadow-lg transition-transform ${
-              isSantaSpeaking ? 'scale-110 animate-pulse' : ''
+        {/* Call Screen Content */}
+        <div className="bg-gradient-to-b from-gray-900 to-black px-8 pb-12 pt-16 min-h-[750px] flex flex-col">
+          {/* Contact Info */}
+          <div className="text-center mb-12">
+            <div className={`w-40 h-40 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-8xl shadow-2xl transition-transform ${
+              isSantaSpeaking ? 'scale-105 animate-pulse' : ''
             }`}>
               🎅
             </div>
-            <h3 className="text-white text-3xl font-semibold mb-2">Santa Claus</h3>
-            <p className="text-green-400 text-lg font-medium">{formatDuration(callDuration)}</p>
+            <h3 className="text-white text-4xl font-light mb-3 tracking-wide">Santa Claus</h3>
+            <p className="text-gray-400 text-xl font-light mb-1">North Pole</p>
+            <p className="text-white text-2xl font-light">{formatDuration(callDuration)}</p>
           </div>
 
-          <div className="flex-1 flex flex-col justify-center">
+          {/* Captions Area */}
+          <div className="flex-1 flex flex-col justify-start min-h-[180px]">
             {speakerLabel && (
-              <div className="text-center mb-4">
-                <p className="text-gray-400 text-sm font-medium mb-2">{speakerLabel}</p>
-                <div className="bg-gray-950/50 rounded-2xl px-6 py-4 min-h-[100px] flex items-center justify-center">
+              <div className="text-center mb-6">
+                <p className="text-gray-400 text-base font-medium mb-3">{speakerLabel}</p>
+                <div className="bg-gray-800/60 backdrop-blur rounded-2xl px-6 py-5 min-h-[120px] flex items-center justify-center">
                   <p className="text-white text-lg leading-relaxed">{currentCaption}</p>
                 </div>
               </div>
             )}
 
             {isListening && (
-              <div className="flex justify-center gap-1 mb-4">
-                <div className="w-1 h-8 bg-blue-500 rounded-full animate-pulse"></div>
-                <div className="w-1 h-12 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-1 h-10 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                <div className="w-1 h-14 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }}></div>
-                <div className="w-1 h-10 bg-blue-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+              <div className="flex justify-center gap-2 mt-4">
+                <div className="w-1.5 h-8 bg-green-500 rounded-full animate-pulse"></div>
+                <div className="w-1.5 h-12 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-1.5 h-10 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-1.5 h-14 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+                <div className="w-1.5 h-10 bg-green-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
               </div>
             )}
           </div>
 
+          {/* Call Controls */}
           {isHost && (
-            <div className="space-y-4">
-              <button
-                onClick={toggleListening}
-                disabled={isSantaSpeaking}
-                className={`w-20 h-20 mx-auto flex items-center justify-center rounded-full transition-all shadow-lg ${
-                  isListening
-                    ? 'bg-red-500 hover:bg-red-600 animate-pulse'
-                    : 'bg-blue-600 hover:bg-blue-700'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
-              >
-                {isListening ? (
-                  <MicOff className="w-8 h-8 text-white" />
-                ) : (
-                  <Mic className="w-8 h-8 text-white" />
-                )}
-              </button>
+            <div className="mt-auto space-y-8">
+              <div className="grid grid-cols-3 gap-8 mb-8">
+                <button className="flex flex-col items-center opacity-50">
+                  <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
+                    <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+                      <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+                    </svg>
+                  </div>
+                  <span className="text-white text-xs">mute</span>
+                </button>
 
-              <p className="text-center text-gray-400 text-sm">
-                {isListening ? 'Tap to stop' : isSantaSpeaking ? 'Santa is speaking...' : 'Tap to speak'}
-              </p>
+                <button className="flex flex-col items-center opacity-50">
+                  <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
+                    <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
+                    </svg>
+                  </div>
+                  <span className="text-white text-xs">keypad</span>
+                </button>
 
-              <button
-                onClick={onEnd}
-                className="w-full bg-red-600 text-white rounded-full py-3 flex items-center justify-center gap-2 hover:bg-red-700 transition-all font-semibold"
-              >
-                <Phone className="w-5 h-5" />
-                End Call
-              </button>
+                <button className="flex flex-col items-center opacity-50">
+                  <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
+                    <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+                    </svg>
+                  </div>
+                  <span className="text-white text-xs">speaker</span>
+                </button>
+              </div>
+
+              <div className="flex justify-center">
+                <button
+                  onClick={isHost ? onEnd : undefined}
+                  className="w-20 h-20 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center shadow-lg transition-all"
+                >
+                  <Phone className="w-9 h-9 text-white transform rotate-[135deg]" />
+                </button>
+              </div>
+
+              <div className="flex justify-center">
+                <button
+                  onClick={toggleListening}
+                  disabled={isSantaSpeaking}
+                  className={`px-8 py-4 rounded-full font-medium transition-all shadow-lg ${
+                    isListening
+                      ? 'bg-red-500 hover:bg-red-600 text-white'
+                      : 'bg-green-600 hover:bg-green-700 text-white'
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {isListening ? (
+                    <>
+                      <MicOff className="w-5 h-5 inline mr-2" />
+                      Stop Speaking
+                    </>
+                  ) : isSantaSpeaking ? (
+                    'Santa is speaking...'
+                  ) : (
+                    <>
+                      <Mic className="w-5 h-5 inline mr-2" />
+                      Tap to Speak
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           )}
         </div>
