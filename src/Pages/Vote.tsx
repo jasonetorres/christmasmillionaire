@@ -71,11 +71,22 @@ export default function Vote() {
     );
   }
 
+  const sendEmoji = async (emoji: string) => {
+    if (!gameState) return;
+
+    await supabase
+      .from('emoji_reactions')
+      .insert({
+        game_state_id: gameState.id,
+        emoji: emoji,
+      });
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 p-8 flex items-center justify-center">
       <div className="max-w-2xl w-full">
         <h1 className="text-4xl font-bold text-yellow-400 text-center mb-8">Cast Your Vote</h1>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 mb-6">
           {['A', 'B', 'C', 'D'].map(answer => (
             <button
               key={answer}
@@ -85,6 +96,21 @@ export default function Vote() {
               {answer}
             </button>
           ))}
+        </div>
+
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+          <p className="text-white text-center mb-3 font-semibold">Send a Reaction</p>
+          <div className="flex justify-center gap-3 flex-wrap">
+            {['👏', '😮', '🤔', '😱', '🎉', '❤️', '🔥', '👍'].map(emoji => (
+              <button
+                key={emoji}
+                onClick={() => sendEmoji(emoji)}
+                className="text-4xl hover:scale-125 transition-all active:scale-95 bg-white/20 rounded-lg p-2 hover:bg-white/30"
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

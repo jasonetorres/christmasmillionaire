@@ -5,6 +5,9 @@ import { MoneyLadder } from '../Components/MoneyLadder';
 import { QuestionDisplay } from '../Components/QuestionDisplay';
 import { QRCodeSVG } from 'qrcode.react';
 import { PhoneCallScreen } from '../Components/PhoneCallScreen';
+import { EmojiReactions } from '../Components/EmojiReactions';
+import { SoundSystemController } from '../Components/SoundSystem';
+import { CountdownTimer } from '../Components/CountdownTimer';
 
 const Celebration = ({ isWin = false }: { isWin?: boolean }) => {
   const particles = Array.from({ length: isWin ? 100 : 50 }, (_, i) => ({
@@ -146,6 +149,15 @@ export default function Display() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 p-8">
+      <SoundSystemController
+        gameStatus={gameState?.game_status}
+        showCorrect={gameState?.show_correct}
+        selectedAnswer={gameState?.selected_answer}
+        correctAnswer={currentQuestion?.correct_answer}
+        activeLifeline={gameState?.active_lifeline}
+        currentLevel={gameState?.current_level}
+      />
+      <EmojiReactions gameStateId={gameState?.id || null} />
       {isCorrectAnswer && <Celebration isWin={hasWon} />}
 
       {isGameOver && isWrongAnswer && (
@@ -171,6 +183,16 @@ export default function Display() {
           <h1 className="text-4xl font-bold text-yellow-400 text-center mb-8">
             Who Wants to Be a Christmasaire?
           </h1>
+
+          {gameState.question_start_time && !gameState.show_correct && (
+            <div className="mb-6">
+              <CountdownTimer
+                startTime={gameState.question_start_time}
+                timeLimit={gameState.time_limit_seconds || 30}
+                isPaused={gameState.selected_answer !== null}
+              />
+            </div>
+          )}
 
           <QuestionDisplay
             question={currentQuestion}

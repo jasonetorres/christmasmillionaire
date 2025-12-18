@@ -25,6 +25,8 @@ export interface GameState {
   removed_answers: string[];
   active_lifeline: string | null;
   total_winnings: string;
+  question_start_time: number | null;
+  time_limit_seconds: number;
   current_question?: TriviaQuestion;
 }
 

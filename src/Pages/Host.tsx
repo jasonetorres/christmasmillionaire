@@ -58,6 +58,8 @@ export default function Host() {
           current_level: 1,
           game_status: 'question_shown',
           total_winnings: '$0',
+          question_start_time: Date.now(),
+          time_limit_seconds: 30,
         })
         .select()
         .single();
@@ -139,6 +141,8 @@ export default function Host() {
       removed_answers: [] as any,
       active_lifeline: null,
       total_winnings: moneyLadder[nextLevel - 1],
+      question_start_time: Date.now(),
+      time_limit_seconds: 30,
     });
 
     setCurrentQuestion(question);
@@ -189,6 +193,18 @@ export default function Host() {
     await updateGameState({ active_lifeline: null });
   };
 
+  const handleWalkAway = async () => {
+    if (!gameState) return;
+
+    const currentWinnings = gameState.total_winnings;
+    if (confirm(`Walk away with ${currentWinnings}?`)) {
+      await updateGameState({
+        game_status: 'game_over',
+        show_correct: true,
+      });
+    }
+  };
+
   const getNewQuestion = async () => {
     if (!gameState || !currentQuestion) return;
 
@@ -215,6 +231,8 @@ export default function Host() {
       show_correct: false,
       removed_answers: [] as any,
       active_lifeline: null,
+      question_start_time: Date.now(),
+      time_limit_seconds: 30,
     });
 
     setCurrentQuestion(question);
@@ -279,6 +297,13 @@ export default function Host() {
         <div className="flex gap-4 mt-8">
           {gameState.game_status !== 'game_over' && (
             <>
+              <button
+                onClick={handleWalkAway}
+                disabled={gameState.show_correct || gameState.current_level === 1}
+                className="flex-1 bg-orange-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Walk Away
+              </button>
               <button
                 onClick={showCorrectAnswer}
                 disabled={!gameState.selected_answer || gameState.show_correct}
