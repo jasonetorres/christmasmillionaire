@@ -104,7 +104,7 @@ export default function Vote() {
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border-2 border-yellow-400">
           <p className="text-white text-center mb-3 font-semibold">Send a Reaction 🎄</p>
           <div className="flex justify-center gap-3 flex-wrap">
-            {['👏', '😮', '🤔', '😱', '🎉', '❤️', '🔥', '👍'].map(emoji => (
+            {['👏', '😮', '🤔', '😱', '🎉', '❤️', '🔥', '👍', '🎄', '🎅', '⛄', '🎁', '⭐', '🎊', '🤶', '🦌'].map(emoji => (
               <button
                 key={emoji}
                 onClick={() => sendEmoji(emoji)}

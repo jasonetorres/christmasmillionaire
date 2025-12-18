@@ -234,7 +234,7 @@ export default function Display() {
             />
 
             <div className="mt-6 bg-white/10 backdrop-blur-sm border-2 border-yellow-400 rounded-lg p-4">
-              <div className="bg-white p-3 rounded-lg text-center">
+              <div className="bg-white p-3 rounded-lg flex flex-col items-center justify-center">
                 <QRCodeSVG value={voteUrl} size={160} />
                 <p className="text-xs font-bold text-gray-800 mt-2">Scan to Join</p>
               </div>
