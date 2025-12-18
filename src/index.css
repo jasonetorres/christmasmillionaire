@@ -38,3 +38,33 @@
 .animate-float-up {
     animation: float-up ease-out forwards;
 }
+
+@keyframes snowfall {
+    0% {
+        transform: translateY(-10vh) translateX(0) rotate(0deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translateY(110vh) translateX(50px) rotate(360deg);
+        opacity: 0.2;
+    }
+}
+
+.animate-snowfall {
+    animation: snowfall linear infinite;
+}
+
+@keyframes twinkle {
+    0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}
+
+.animate-twinkle {
+    animation: twinkle ease-in-out infinite;
+}

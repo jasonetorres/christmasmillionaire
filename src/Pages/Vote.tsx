@@ -50,14 +50,14 @@ export default function Vote() {
 
   if (!gameState || gameState.game_status !== 'question_shown' || gameState.active_lifeline !== 'audience') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 flex items-center justify-center p-8">
+      <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 flex items-center justify-center p-8">
         <div className="text-center">
           <p className="text-white text-2xl mb-4">
-            {!gameState ? 'No active game' :
-             gameState.active_lifeline !== 'audience' ? 'Audience voting not active' :
-             'Waiting for question...'}
+            {!gameState ? 'No active game 🎄' :
+             gameState.active_lifeline !== 'audience' ? 'Audience voting not active 🎄' :
+             'Waiting for question... 🎄'}
           </p>
-          <p className="text-gray-400 text-lg">Wait for the host to activate Ask the Audience</p>
+          <p className="text-green-200 text-lg">Wait for the host to activate Ask the Audience</p>
         </div>
       </div>
     );
@@ -65,8 +65,11 @@ export default function Vote() {
 
   if (voted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 flex items-center justify-center">
-        <p className="text-white text-2xl">Thanks for voting!</p>
+      <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-white text-2xl mb-4">Thanks for voting! 🎄</p>
+          <span className="text-6xl animate-twinkle" style={{ animationDuration: '2s' }}>⭐</span>
+        </div>
       </div>
     );
   }
@@ -83,29 +86,32 @@ export default function Vote() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 p-8 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 p-8 flex items-center justify-center">
       <div className="max-w-2xl w-full">
-        <h1 className="text-4xl font-bold text-yellow-400 text-center mb-8">Cast Your Vote</h1>
+        <div className="text-center mb-8">
+          <span className="text-5xl animate-twinkle inline-block" style={{ animationDuration: '2s' }}>⭐</span>
+          <h1 className="text-4xl font-bold text-yellow-300 text-center mb-2 drop-shadow-lg">Cast Your Vote 🎄</h1>
+        </div>
         <div className="grid grid-cols-2 gap-4 mb-6">
           {['A', 'B', 'C', 'D'].map(answer => (
             <button
               key={answer}
               onClick={() => handleVote(answer as any)}
-              className="bg-blue-600 text-white p-12 rounded-xl text-6xl font-bold hover:bg-blue-700 transition-all shadow-2xl hover:scale-105"
+              className="bg-gradient-to-br from-green-700 to-green-800 text-white p-12 rounded-xl text-6xl font-bold hover:from-green-800 hover:to-green-900 transition-all shadow-2xl hover:scale-105 border-4 border-yellow-400"
             >
               {answer}
             </button>
           ))}
         </div>
 
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-          <p className="text-white text-center mb-3 font-semibold">Send a Reaction</p>
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border-2 border-yellow-400">
+          <p className="text-white text-center mb-3 font-semibold">Send a Reaction 🎄</p>
           <div className="flex justify-center gap-3 flex-wrap">
             {['👏', '😮', '🤔', '😱', '🎉', '❤️', '🔥', '👍'].map(emoji => (
               <button
                 key={emoji}
                 onClick={() => sendEmoji(emoji)}
-                className="text-4xl hover:scale-125 transition-all active:scale-95 bg-white/20 rounded-lg p-2 hover:bg-white/30"
+                className="text-4xl hover:scale-125 transition-all active:scale-95 bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-2 hover:from-red-700 hover:to-red-800 border-2 border-yellow-300"
               >
                 {emoji}
               </button>

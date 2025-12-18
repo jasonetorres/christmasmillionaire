@@ -240,34 +240,34 @@ export default function Host() {
 
   if (!gameState || !currentQuestion) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 p-8 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 p-8 flex items-center justify-center">
         <button
           onClick={startNewGame}
-          className="bg-green-600 text-white px-12 py-6 rounded-xl text-2xl font-bold hover:bg-green-700 transition-all shadow-2xl flex items-center gap-4"
+          className="bg-gradient-to-r from-green-700 to-green-800 text-white px-12 py-6 rounded-xl text-2xl font-bold hover:from-green-800 hover:to-green-900 transition-all shadow-2xl flex items-center gap-4 border-4 border-yellow-400"
         >
           <Play className="w-10 h-10" />
-          Start New Game
+          Start New Game 🎄
         </button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-blue-950 p-8">
+    <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-yellow-400">Host Panel</h1>
+          <h1 className="text-3xl font-bold text-yellow-300 drop-shadow-lg">Host Panel 🎄</h1>
           <div className="flex gap-3">
             <button
               onClick={getNewQuestion}
-              className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-all flex items-center gap-2"
+              className="bg-gradient-to-r from-green-700 to-green-800 text-white px-4 py-2 rounded-lg hover:from-green-800 hover:to-green-900 transition-all flex items-center gap-2 border-2 border-yellow-400"
             >
               <RefreshCw className="w-5 h-5" />
               New Question
             </button>
             <button
               onClick={resetGame}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-all flex items-center gap-2"
+              className="bg-gradient-to-r from-red-700 to-red-800 text-white px-4 py-2 rounded-lg hover:from-red-800 hover:to-red-900 transition-all flex items-center gap-2 border-2 border-yellow-400"
             >
               <RotateCcw className="w-5 h-5" />
               Reset
@@ -300,21 +300,21 @@ export default function Host() {
               <button
                 onClick={handleWalkAway}
                 disabled={gameState.show_correct || gameState.current_level === 1}
-                className="flex-1 bg-orange-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white px-6 py-4 rounded-lg font-bold hover:from-yellow-700 hover:to-yellow-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-yellow-300"
               >
                 Walk Away
               </button>
               <button
                 onClick={showCorrectAnswer}
                 disabled={!gameState.selected_answer || gameState.show_correct}
-                className="flex-1 bg-yellow-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-yellow-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gradient-to-r from-green-700 to-green-800 text-white px-6 py-4 rounded-lg font-bold hover:from-green-800 hover:to-green-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-yellow-400"
               >
                 Show Correct Answer
               </button>
               <button
                 onClick={nextQuestion}
                 disabled={!gameState.show_correct}
-                className="flex-1 bg-blue-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-gradient-to-r from-red-700 to-red-800 text-white px-6 py-4 rounded-lg font-bold hover:from-red-800 hover:to-red-900 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-yellow-400"
               >
                 <SkipForward className="w-6 h-6" />
                 Next Question
@@ -324,7 +324,7 @@ export default function Host() {
           {gameState.game_status === 'game_over' && (
             <button
               onClick={resetGame}
-              className="flex-1 bg-red-600 text-white px-6 py-4 rounded-lg font-bold hover:bg-red-700 transition-all"
+              className="flex-1 bg-gradient-to-r from-red-700 to-red-800 text-white px-6 py-4 rounded-lg font-bold hover:from-red-800 hover:to-red-900 transition-all border-2 border-yellow-400"
             >
               End Game
             </button>
@@ -335,7 +335,7 @@ export default function Host() {
           <div className="mt-4">
             <button
               onClick={endLifeline}
-              className="w-full bg-red-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-700 transition-all flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-red-700 to-red-800 text-white px-6 py-3 rounded-lg font-bold hover:from-red-800 hover:to-red-900 transition-all flex items-center justify-center gap-2 border-2 border-yellow-400"
             >
               <X className="w-5 h-5" />
               End Lifeline
