@@ -3,7 +3,9 @@
 use Illuminate\Support\Str;
 
 return [
+
     'default' => env('DB_CONNECTION', 'pgsql'),
+
     'connections' => [
         'pgsql' => [
             'driver' => 'pgsql',
@@ -20,8 +22,30 @@ return [
             'sslmode' => 'prefer',
         ],
     ],
+
     'migrations' => [
         'table' => 'migrations',
         'update_date_on_publish' => true,
     ],
+
+    'redis' => [
+
+        'client' => env('REDIS_CLIENT', 'phpredis'),
+
+        'default' => [
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME', null),
+            'password' => env('REDIS_PASSWORD', null),
+            'port' => env('REDIS_PORT', 6379),
+            'database' => env('REDIS_CACHE_DB', 0),
+            'options' => [
+                'ssl' => [
+                    'verify_peer' => false,
+                ],
+            ],
+        ],
+
+    ],
+
 ];
