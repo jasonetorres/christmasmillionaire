@@ -25,7 +25,6 @@ return [
 
     'migrations' => [
         'table' => 'migrations',
-        'update_date_on_publish' => true,
     ],
 
     'redis' => [
@@ -53,9 +52,6 @@ return [
                 'verify_peer' => false,
             ],
         ],
-
-    ],
-
 
     ],
 
