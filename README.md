@@ -1,6 +1,6 @@
 # Who Wants to Be a Millionaire - Christmas Edition
 
-A real-time trivia game built with React, Supabase, and Tailwind CSS.
+A real-time trivia game built with Laravel, Inertia.js, React, and Supabase.
 
 ## Features
 
@@ -14,21 +14,33 @@ A real-time trivia game built with React, Supabase, and Tailwind CSS.
 
 ## Tech Stack
 
+- Laravel 11 (Backend Framework)
+- Inertia.js (React Integration)
 - React 18 with TypeScript
 - Supabase (Database + Realtime)
 - Tailwind CSS
 - Vite
-- React Router
 
 ## Setup
 
-### 1. Environment Variables
+### 1. Install Dependencies
 
-Create a `.env` file with:
+```bash
+# Install PHP dependencies
+composer install
+
+# Install JavaScript dependencies
+npm install
+```
+
+### 2. Environment Variables
+
+Your `.env` file is already configured with Supabase credentials. The key variables are:
 
 ```env
 VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+APP_KEY=your_laravel_app_key
 ```
 
 ### 2. Configure Twilio for Real Phone Calls (Optional)
@@ -54,31 +66,31 @@ The Supabase database is already set up with:
 - Audience voting tables
 - Real-time subscriptions enabled
 
-### 4. Install & Run
-
-```bash
-npm install
-npm run dev
-```
-
-### 5. Build
+### 4. Build Assets
 
 ```bash
 npm run build
 ```
 
-## Deploy to Netlify
+### 5. Start the Server
 
-1. Push your code to GitHub
-2. Connect your repo to Netlify
-3. Add environment variables in Netlify dashboard:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-4. Deploy!
+```bash
+php artisan serve
+```
 
-Build settings are configured in `netlify.toml`:
-- Build command: `npm run build`
-- Publish directory: `dist`
+The application will be available at http://localhost:8000
+
+## Development Mode
+
+For development with hot module replacement:
+
+```bash
+# Terminal 1: Start Vite dev server
+npm run dev
+
+# Terminal 2: Start Laravel server
+php artisan serve
+```
 
 ## How to Play
 

@@ -14,8 +14,11 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@/*": ["./resources/js/*"]
+    }
   },
-  "include": ["src"],
+  "include": ["resources/js/**/*.ts", "resources/js/**/*.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
