@@ -48,32 +48,6 @@ export default function Vote() {
     }
   };
 
-  if (!gameState || gameState.game_status !== 'question_shown' || gameState.active_lifeline !== 'audience') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 flex items-center justify-center p-8">
-        <div className="text-center">
-          <p className="text-white text-2xl mb-4">
-            {!gameState ? 'No active game 🎄' :
-             gameState.active_lifeline !== 'audience' ? 'Audience voting not active 🎄' :
-             'Waiting for question... 🎄'}
-          </p>
-          <p className="text-green-200 text-lg">Wait for the host to activate Ask the Audience</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (voted) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-white text-2xl mb-4">Thanks for voting! 🎄</p>
-          <span className="text-6xl animate-twinkle" style={{ animationDuration: '2s' }}>⭐</span>
-        </div>
-      </div>
-    );
-  }
-
   const sendEmoji = async (emoji: string) => {
     if (!gameState) return;
 
@@ -85,24 +59,47 @@ export default function Vote() {
       });
   };
 
+  const canVote = gameState && gameState.game_status === 'question_shown' && gameState.active_lifeline === 'audience' && !voted;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 p-8 flex items-center justify-center">
       <div className="max-w-2xl w-full">
         <div className="text-center mb-8">
           <span className="text-5xl animate-twinkle inline-block" style={{ animationDuration: '2s' }}>⭐</span>
-          <h1 className="text-4xl font-bold text-yellow-300 text-center mb-2 drop-shadow-lg">Cast Your Vote 🎄</h1>
+          <h1 className="text-4xl font-bold text-yellow-300 text-center mb-2 drop-shadow-lg">
+            Who Wants to Be a Christmasaire? 🎄
+          </h1>
         </div>
-        <div className="grid grid-cols-2 gap-4 mb-6">
-          {['A', 'B', 'C', 'D'].map(answer => (
-            <button
-              key={answer}
-              onClick={() => handleVote(answer as any)}
-              className="bg-gradient-to-br from-green-700 to-green-800 text-white p-12 rounded-xl text-6xl font-bold hover:from-green-800 hover:to-green-900 transition-all shadow-2xl hover:scale-105 border-4 border-yellow-400"
-            >
-              {answer}
-            </button>
-          ))}
-        </div>
+
+        {canVote ? (
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-white text-center mb-4">Cast Your Vote</h2>
+            <div className="grid grid-cols-2 gap-4">
+              {['A', 'B', 'C', 'D'].map(answer => (
+                <button
+                  key={answer}
+                  onClick={() => handleVote(answer as any)}
+                  className="bg-gradient-to-br from-green-700 to-green-800 text-white p-12 rounded-xl text-6xl font-bold hover:from-green-800 hover:to-green-900 transition-all shadow-2xl hover:scale-105 border-4 border-yellow-400"
+                >
+                  {answer}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : voted ? (
+          <div className="mb-6 text-center">
+            <p className="text-white text-2xl mb-2">Thanks for voting! 🎄</p>
+            <span className="text-6xl animate-twinkle inline-block" style={{ animationDuration: '2s' }}>⭐</span>
+          </div>
+        ) : (
+          <div className="mb-6 text-center">
+            <p className="text-white text-xl mb-2">
+              {!gameState ? 'No active game 🎄' :
+               gameState.active_lifeline !== 'audience' ? 'Watching the game...' :
+               'Waiting for question... 🎄'}
+            </p>
+          </div>
+        )}
 
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border-2 border-yellow-400">
           <p className="text-white text-center mb-3 font-semibold">Send a Reaction 🎄</p>
