@@ -195,16 +195,9 @@ export default function Display() {
 
           {gameState.active_lifeline === 'audience' && (
             <div className="mt-8 bg-blue-900/50 border-2 border-blue-500 p-6 rounded-lg">
-              <h3 className="text-2xl font-bold text-white text-center mb-4">
-                👥 Ask the Audience
+              <h3 className="text-2xl font-bold text-white text-center mb-6">
+                👥 Ask the Audience Results
               </h3>
-
-              <div className="flex justify-center mb-6">
-                <div className="bg-white p-4 rounded-lg text-center">
-                  <QRCodeSVG value={voteUrl} size={180} />
-                  <p className="text-sm font-bold text-gray-800 mt-2">Scan to Vote</p>
-                </div>
-              </div>
 
               <div className="grid grid-cols-4 gap-4">
                 {['A', 'B', 'C', 'D'].map(answer => (
@@ -231,6 +224,16 @@ export default function Display() {
             currentLevel={gameState.current_level}
             isActive={gameState.game_status === 'question_shown'}
           />
+
+          <div className="mt-6 bg-white/10 backdrop-blur-sm border-2 border-yellow-400 rounded-lg p-4">
+            <div className="bg-white p-3 rounded-lg text-center">
+              <QRCodeSVG value={voteUrl} size={160} />
+              <p className="text-xs font-bold text-gray-800 mt-2">Scan to Join</p>
+            </div>
+            <p className="text-white text-sm text-center mt-3 font-semibold">
+              Audience Reactions
+            </p>
+          </div>
         </div>
       </div>
 
