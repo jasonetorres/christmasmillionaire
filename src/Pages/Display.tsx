@@ -7,7 +7,6 @@ import { QRCodeSVG } from 'qrcode.react';
 import { PhoneCallScreen } from '../Components/PhoneCallScreen';
 import { EmojiReactions } from '../Components/EmojiReactions';
 import { SoundSystemController } from '../Components/SoundSystem';
-import { CountdownTimer } from '../Components/CountdownTimer';
 
 const Celebration = ({ isWin = false }: { isWin?: boolean }) => {
   const particles = Array.from({ length: isWin ? 100 : 50 }, (_, i) => ({
@@ -183,16 +182,6 @@ export default function Display() {
           <h1 className="text-4xl font-bold text-yellow-400 text-center mb-8">
             Who Wants to Be a Christmasaire?
           </h1>
-
-          {gameState.question_start_time && !gameState.show_correct && (
-            <div className="mb-6">
-              <CountdownTimer
-                startTime={gameState.question_start_time}
-                timeLimit={gameState.time_limit_seconds || 30}
-                isPaused={gameState.selected_answer !== null}
-              />
-            </div>
-          )}
 
           <QuestionDisplay
             question={currentQuestion}

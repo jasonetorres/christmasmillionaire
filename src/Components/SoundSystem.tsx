@@ -72,14 +72,6 @@ class GameSoundSystem {
     });
   }
 
-  playTimerTick() {
-    this.playTone(800, 0.05, 0.1);
-  }
-
-  playTimerWarning() {
-    this.playTone(1000, 0.1, 0.2);
-  }
-
   startTensionMusic() {
     if (!this.audioContext || this.backgroundMusic) return;
 
