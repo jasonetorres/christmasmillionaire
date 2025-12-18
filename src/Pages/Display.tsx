@@ -8,35 +8,6 @@ import { PhoneCallScreen } from '../Components/PhoneCallScreen';
 import { EmojiReactions } from '../Components/EmojiReactions';
 import { SoundSystemController } from '../Components/SoundSystem';
 
-const Snowflakes = () => {
-  const snowflakes = Array.from({ length: 40 }, (_, i) => ({
-    id: i,
-    left: Math.random() * 100,
-    animationDuration: 10 + Math.random() * 20,
-    animationDelay: Math.random() * 5,
-    size: 0.5 + Math.random() * 1.5,
-  }));
-
-  return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-      {snowflakes.map((flake) => (
-        <div
-          key={flake.id}
-          className="absolute animate-snowfall text-white"
-          style={{
-            left: `${flake.left}%`,
-            animationDuration: `${flake.animationDuration}s`,
-            animationDelay: `${flake.animationDelay}s`,
-            fontSize: `${flake.size}rem`,
-          }}
-        >
-          ❄️
-        </div>
-      ))}
-    </div>
-  );
-};
-
 const Celebration = ({ isWin = false }: { isWin?: boolean }) => {
   const particles = Array.from({ length: isWin ? 100 : 50 }, (_, i) => ({
     id: i,
@@ -159,7 +130,6 @@ export default function Display() {
   if (!gameState || !currentQuestion) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 flex items-center justify-center relative overflow-hidden">
-        <Snowflakes />
         <div className="text-center relative z-10">
           <div className="mb-6">
             <span className="text-7xl animate-twinkle inline-block" style={{ animationDuration: '2s' }}>⭐</span>
@@ -181,7 +151,6 @@ export default function Display() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 p-8 relative overflow-hidden">
-      <Snowflakes />
       <div className="relative z-10">
         <SoundSystemController
           gameStatus={gameState?.game_status}
