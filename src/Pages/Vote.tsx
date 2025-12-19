@@ -4,21 +4,45 @@ import { supabase } from '../lib/supabase';
 export default function Vote() {
   const [voted, setVoted] = useState(false);
   const [gameState, setGameState] = useState<any>(null);
+  const [voteCounts, setVoteCounts] = useState({ A: 0, B: 0, C: 0, D: 0 });
 
   useEffect(() => {
     checkGameState();
 
-    const channel = supabase
+    const gameStateChannel = supabase
       .channel('game-state-vote')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'game_state' }, () => {
         checkGameState();
       })
       .subscribe();
 
+    const votesChannel = supabase
+      .channel('audience-votes-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'audience_votes' }, async () => {
+        const { data } = await supabase
+          .from('game_state')
+          .select('*')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (data?.id) {
+          loadVoteCounts(data.id);
+        }
+      })
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(gameStateChannel);
+      supabase.removeChannel(votesChannel);
     };
   }, []);
+
+  useEffect(() => {
+    if (gameState?.id) {
+      loadVoteCounts();
+    }
+  }, [gameState?.id]);
 
   const checkGameState = async () => {
     const { data } = await supabase
@@ -29,6 +53,26 @@ export default function Vote() {
       .maybeSingle();
 
     setGameState(data);
+  };
+
+  const loadVoteCounts = async (stateId?: string) => {
+    const gameStateId = stateId || gameState?.id;
+    if (!gameStateId) return;
+
+    const { data: votes } = await supabase
+      .from('audience_votes')
+      .select('vote')
+      .eq('game_state_id', gameStateId);
+
+    if (votes) {
+      const counts = { A: 0, B: 0, C: 0, D: 0 };
+      votes.forEach((v: any) => {
+        if (v.vote in counts) {
+          counts[v.vote as keyof typeof counts]++;
+        }
+      });
+      setVoteCounts(counts);
+    }
   };
 
   const handleVote = async (answer: 'A' | 'B' | 'C' | 'D') => {
@@ -72,24 +116,45 @@ export default function Vote() {
         </div>
 
         {canVote ? (
-          <div className="mb-6">
+          <div className="mb-14">
             <h2 className="text-2xl font-bold text-white text-center mb-4">Cast Your Vote</h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 gap-y-12">
               {['A', 'B', 'C', 'D'].map(answer => (
-                <button
-                  key={answer}
-                  onClick={() => handleVote(answer as any)}
-                  className="bg-gradient-to-br from-green-700 to-green-800 text-white p-12 rounded-xl text-6xl font-bold hover:from-green-800 hover:to-green-900 transition-all shadow-2xl hover:scale-105 border-4 border-yellow-400"
-                >
-                  {answer}
-                </button>
+                <div key={answer} className="relative">
+                  <button
+                    onClick={() => handleVote(answer as any)}
+                    className="w-full bg-gradient-to-br from-green-700 to-green-800 text-white p-12 rounded-xl text-6xl font-bold hover:from-green-800 hover:to-green-900 transition-all shadow-2xl hover:scale-105 border-4 border-yellow-400"
+                  >
+                    {answer}
+                  </button>
+                  <div className="absolute -bottom-8 left-0 right-0 text-center">
+                    <span className="text-yellow-300 text-xl font-bold">
+                      {voteCounts[answer as keyof typeof voteCounts]} votes
+                    </span>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
         ) : voted ? (
-          <div className="mb-6 text-center">
-            <p className="text-white text-2xl mb-2">Thanks for voting! 🎄</p>
-            <span className="text-6xl animate-twinkle inline-block" style={{ animationDuration: '2s' }}>⭐</span>
+          <div className="mb-6">
+            <div className="text-center mb-6">
+              <p className="text-white text-2xl mb-2">Thanks for voting! 🎄</p>
+              <span className="text-6xl animate-twinkle inline-block" style={{ animationDuration: '2s' }}>⭐</span>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border-2 border-yellow-400">
+              <h3 className="text-xl font-bold text-white text-center mb-4">Current Vote Count</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {['A', 'B', 'C', 'D'].map(answer => (
+                  <div key={answer} className="bg-gradient-to-br from-red-800 to-red-900 p-4 rounded-lg border-2 border-yellow-400 text-center">
+                    <div className="text-4xl font-bold text-yellow-300 mb-1">{answer}</div>
+                    <div className="text-2xl font-bold text-white">
+                      {voteCounts[answer as keyof typeof voteCounts]}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         ) : (
           <div className="mb-6 text-center">
