@@ -115,6 +115,17 @@ export default function Vote() {
             ))}
           </div>
         </div>
+
+        <div className="mt-6">
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLSdLo2ycnyWO1WrS69KM9YWRtz6o2rouRgVPkL_lDhM-JsEFXQ/viewform?usp=publish-editor"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-900 font-bold text-2xl py-6 px-8 rounded-xl shadow-2xl hover:from-yellow-300 hover:to-yellow-400 transition-all transform hover:scale-105 text-center border-4 border-red-700"
+          >
+            🎁 Enter Drawing 🎁
+          </a>
+        </div>
       </div>
     </div>
   );
