@@ -9,8 +9,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Welcome />} />
-        <Route path="/host" element={<Host />} />
-        <Route path="/display" element={<Display />} />
+        <Route path="/hostjt" element={<Host />} />
+        <Route path="/displayurl" element={<Display />} />
         <Route path="/vote" element={<Vote />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

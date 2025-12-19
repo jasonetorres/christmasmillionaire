@@ -17,7 +17,7 @@ export default function Welcome() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <button
-                        onClick={() => navigate('/host')}
+                        onClick={() => navigate('/hostjt')}
                         className="bg-gradient-to-br from-red-600 to-red-700 text-white p-12 rounded-2xl text-3xl font-bold hover:from-red-700 hover:to-red-800 transition-all shadow-2xl flex flex-col items-center gap-6 hover:scale-105 border-4 border-yellow-400"
                     >
                         <Tv className="w-20 h-20" />
@@ -25,7 +25,7 @@ export default function Welcome() {
                     </button>
 
                     <button
-                        onClick={() => navigate('/display')}
+                        onClick={() => navigate('/displayurl')}
                         className="bg-gradient-to-br from-green-700 to-green-800 text-white p-12 rounded-2xl text-3xl font-bold hover:from-green-800 hover:to-green-900 transition-all shadow-2xl flex flex-col items-center gap-6 hover:scale-105 border-4 border-yellow-400"
                     >
                         <MonitorPlay className="w-20 h-20" />
