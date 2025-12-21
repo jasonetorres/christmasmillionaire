@@ -139,10 +139,11 @@ Remember: You're the REAL Santa answering your phone at the North Pole - magical
       },
       body: JSON.stringify({
         text: aiResponse,
-        model_id: 'eleven_monolingual_v1',
+        model_id: 'eleven_turbo_v2_5',
         voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
+          stability: 0.7,
+          similarity_boost: 0.8,
+          style: 0.5,
         }
       }),
     });
