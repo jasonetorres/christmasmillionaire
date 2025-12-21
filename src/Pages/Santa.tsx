@@ -190,24 +190,24 @@ export default function Santa() {
           </div>
         </div>
 
-        <div className="bg-gradient-to-b from-gray-900 to-black px-8 pb-12 pt-16 min-h-[750px] flex flex-col">
-          <div className="text-center mb-12">
-            <div className={`w-40 h-40 mx-auto mb-6 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-8xl shadow-2xl transition-transform ${
+        <div className="bg-gradient-to-b from-gray-900 to-black px-8 pb-6 pt-8 min-h-[650px] flex flex-col">
+          <div className="text-center mb-6">
+            <div className={`w-28 h-28 mx-auto mb-4 rounded-full bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center text-6xl shadow-2xl transition-transform ${
               isSantaSpeaking ? 'scale-105 animate-pulse' : ''
             }`}>
               🎅
             </div>
-            <h3 className="text-white text-4xl font-light mb-3 tracking-wide">Santa Claus</h3>
-            <p className="text-gray-400 text-xl font-light mb-1">North Pole</p>
-            <p className="text-white text-2xl font-light">{formatDuration(callDuration)}</p>
+            <h3 className="text-white text-2xl font-light mb-1 tracking-wide">Santa Claus</h3>
+            <p className="text-gray-400 text-base font-light mb-0.5">North Pole</p>
+            <p className="text-white text-lg font-light">{formatDuration(callDuration)}</p>
           </div>
 
-          <div className="mt-auto space-y-8">
-            <div className="flex justify-center mb-8">
+          <div className="mt-auto space-y-4">
+            <div className="flex justify-center mb-4">
               <button
                 onClick={toggleListening}
                 disabled={isSantaSpeaking}
-                className={`w-32 h-32 rounded-full flex flex-col items-center justify-center transition-all shadow-2xl ${
+                className={`w-24 h-24 rounded-full flex flex-col items-center justify-center transition-all shadow-2xl ${
                   isListening
                     ? 'bg-red-600 animate-pulse scale-110'
                     : isSantaSpeaking
@@ -217,22 +217,22 @@ export default function Santa() {
               >
                 {isListening ? (
                   <>
-                    <MicOff className="w-12 h-12 text-white mb-2" />
-                    <span className="text-white font-bold text-sm">STOP</span>
+                    <MicOff className="w-9 h-9 text-white mb-1" />
+                    <span className="text-white font-bold text-xs">STOP</span>
                   </>
                 ) : (
                   <>
-                    <Mic className="w-12 h-12 text-white mb-2" />
-                    <span className="text-white font-bold text-sm">TALK</span>
+                    <Mic className="w-9 h-9 text-white mb-1" />
+                    <span className="text-white font-bold text-xs">TALK</span>
                   </>
                 )}
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-8 mb-8">
+            <div className="grid grid-cols-3 gap-6 mb-4">
               <button className="flex flex-col items-center opacity-50">
-                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
-                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <div className="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center mb-1">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
                     <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
                   </svg>
@@ -241,8 +241,8 @@ export default function Santa() {
               </button>
 
               <button className="flex flex-col items-center opacity-50">
-                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
-                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <div className="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center mb-1">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>
                   </svg>
                 </div>
@@ -250,8 +250,8 @@ export default function Santa() {
               </button>
 
               <button className="flex flex-col items-center opacity-50">
-                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
-                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <div className="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center mb-1">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
                   </svg>
                 </div>
@@ -259,10 +259,10 @@ export default function Santa() {
               </button>
             </div>
 
-            <div className="grid grid-cols-3 gap-8 mb-8">
+            <div className="grid grid-cols-3 gap-6 mb-4">
               <button className="flex flex-col items-center opacity-50">
-                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
-                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <div className="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center mb-1">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57-.35-.11-.74-.03-1.02.24l-2.2 2.2c-2.83-1.44-5.15-3.75-6.59-6.59l2.2-2.21c.28-.26.36-.65.25-1C8.7 6.45 8.5 5.25 8.5 4c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.5c0-.55-.45-1-1-1zM19 12h2c0-4.97-4.03-9-9-9v2c3.87 0 7 3.13 7 7z"/>
                   </svg>
                 </div>
@@ -270,8 +270,8 @@ export default function Santa() {
               </button>
 
               <button className="flex flex-col items-center opacity-50">
-                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
-                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <div className="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center mb-1">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                   </svg>
                 </div>
@@ -279,8 +279,8 @@ export default function Santa() {
               </button>
 
               <button className="flex flex-col items-center opacity-50">
-                <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mb-2">
-                  <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <div className="w-14 h-14 bg-gray-700 rounded-full flex items-center justify-center mb-1">
+                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                   </svg>
                 </div>
@@ -288,12 +288,12 @@ export default function Santa() {
               </button>
             </div>
 
-            <div className="flex justify-center pt-4">
+            <div className="flex justify-center pt-2">
               <a
                 href="/"
-                className="w-20 h-20 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center shadow-2xl transition-all"
+                className="w-16 h-16 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center shadow-2xl transition-all"
               >
-                <Phone className="w-10 h-10 text-white transform rotate-[135deg]" />
+                <Phone className="w-8 h-8 text-white transform rotate-[135deg]" />
               </a>
             </div>
           </div>
