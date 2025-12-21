@@ -139,6 +139,12 @@ export default function Santa() {
     audio.onended = () => {
       setIsSantaSpeaking(false);
       URL.revokeObjectURL(audioUrl);
+
+      setTimeout(() => {
+        if (recognitionRef.current && !isListening) {
+          recognitionRef.current.start();
+        }
+      }, 500);
     };
 
     audio.onerror = () => {
