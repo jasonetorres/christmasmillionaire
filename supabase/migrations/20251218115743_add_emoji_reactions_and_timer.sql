@@ -76,3 +76,10 @@ CREATE POLICY "Anyone can view emoji reactions"
   FOR SELECT
   TO anon, authenticated
   USING (true);
+
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    GRANT SELECT, INSERT ON emoji_reactions TO anon, authenticated;
+  END IF;
+END $$;

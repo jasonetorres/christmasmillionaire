@@ -1,3 +1,5 @@
+> Historical note (November 2026): this migration is not the app in this repo. There is no Laravel code to deploy. The game is the Vite + React app in `src/`. Follow the README.
+
 # Laravel + Inertia + React Migration Complete
 
 This application has been successfully migrated to Laravel + Inertia.js + React architecture.

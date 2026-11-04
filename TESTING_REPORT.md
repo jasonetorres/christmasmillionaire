@@ -1,3 +1,5 @@
+> Historical note (November 2026): this report describes an older deployment, including Twilio and voice-chat functions that are not in the tree. Follow the README for the current app.
+
 # Testing Report: Who Wants to Be a Christmasaire
 
 ## Build Status

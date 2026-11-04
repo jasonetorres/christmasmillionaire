@@ -41,32 +41,45 @@ export default function Host() {
     await supabase.from('game_state').delete().neq('id', '00000000-0000-0000-0000-000000000000');
     await supabase.from('trivia_questions').update({ is_used: false }).eq('is_used', true);
 
-    const { data: questions } = await supabase
+    const { data: questions, error: questionsError } = await supabase
       .from('trivia_questions')
       .select('*')
       .eq('difficulty_level', 1)
       .eq('is_used', false);
 
-    if (questions && questions.length > 0) {
-      const question = questions[Math.floor(Math.random() * questions.length)];
-      await supabase.from('trivia_questions').update({ is_used: true }).eq('id', question.id);
-
-      const { data: newGame } = await supabase
-        .from('game_state')
-        .insert({
-          current_question_id: question.id,
-          current_level: 1,
-          game_status: 'question_shown',
-          total_winnings: '$0',
-          question_start_time: Date.now(),
-          time_limit_seconds: 30,
-        })
-        .select()
-        .single();
-
-      setGameState(newGame);
-      setCurrentQuestion(question);
+    if (questionsError) {
+      alert('Could not load questions: ' + questionsError.message);
+      return;
     }
+
+    if (!questions || questions.length === 0) {
+      alert('No unused level 1 questions found. Seed trivia_questions with npm run seed, then try again.');
+      return;
+    }
+
+    const question = questions[Math.floor(Math.random() * questions.length)];
+    await supabase.from('trivia_questions').update({ is_used: true }).eq('id', question.id);
+
+    const { data: newGame, error: insertError } = await supabase
+      .from('game_state')
+      .insert({
+        current_question_id: question.id,
+        current_level: 1,
+        game_status: 'question_shown',
+        total_winnings: '$0',
+        question_start_time: Date.now(),
+        time_limit_seconds: 30,
+      })
+      .select()
+      .single();
+
+    if (insertError || !newGame) {
+      alert('Could not start the game: ' + (insertError?.message ?? 'no row returned'));
+      return;
+    }
+
+    setGameState(newGame);
+    setCurrentQuestion(question);
   };
 
   const updateGameState = async (updates: Partial<GameState>) => {

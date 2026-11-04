@@ -1,125 +1,148 @@
-# Who Wants to Be a Millionaire - Christmas Edition
+# Who Wants to Be a Christmasaire?
 
-A real-time trivia game built with Laravel, Inertia.js, React, and Supabase.
+Real-time Christmas trivia game used on Jason Torres' charity stream. The host drives the show, a projector shows the board, and the audience joins from their phones.
 
-## Features
+This is a Vite + React single-page app. It talks to Supabase from the browser. There is no Laravel app, no PHP server, and no Node game server in this repo.
 
-- **Host Panel**: Control the game, manage lifelines, show answers
-- **Display Panel**: Big screen display with real-time updates
-- **Audience Voting**: Allow audience participation with live polls
-- **Lifelines**: 50/50, Phone a Friend (real Twilio calls!), Ask the Audience
-- **Real-time Updates**: Powered by Supabase Realtime
-- **AI-Powered Santa**: OpenAI/Anthropic-powered Santa Claus calls you with advice
-- **1,092 Questions**: Across 15 difficulty levels
+## Routes
 
-## Tech Stack
+| Path | Who uses it |
+| --- | --- |
+| `/` | Picker for the host panel and the display |
+| `/hostjt` | Host controls. Keep this URL off the public landing page and out of chat |
+| `/displayurl` | Projector / stream view |
+| `/vote` | Audience phones. QR code on the display points here |
+| `/santa` | Standalone Santa call, same edge function as Phone a Friend |
 
-- Laravel 11 (Backend Framework)
-- Inertia.js (React Integration)
-- React 18 with TypeScript
-- Supabase (Database + Realtime)
-- Tailwind CSS
-- Vite
+`/hostjt` and `/displayurl` are the real paths. Older notes that say `/host` and `/display` are stale.
 
-## Setup
+## Local production build
 
-### 1. Install Dependencies
+Requires Node.js 22.
 
 ```bash
-# Install PHP dependencies
-composer install
-
-# Install JavaScript dependencies
 npm install
-```
-
-### 2. Environment Variables
-
-Your `.env` file is already configured with Supabase credentials. The key variables are:
-
-```env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-APP_KEY=your_laravel_app_key
-```
-
-### 2. Configure Twilio for Real Phone Calls (Optional)
-
-To enable the "Phone a Friend" lifeline with real phone calls:
-
-1. Sign up for a [Twilio account](https://www.twilio.com/try-twilio)
-2. Get your Account SID, Auth Token, and a Twilio phone number
-3. In your Supabase Dashboard, go to **Project Settings > Edge Functions**
-4. Add these secrets:
-   - `TWILIO_ACCOUNT_SID` - Your Twilio Account SID
-   - `TWILIO_AUTH_TOKEN` - Your Twilio Auth Token
-   - `TWILIO_PHONE_NUMBER` - Your Twilio phone number (format: +1234567890)
-   - `OPENAI_API_KEY` - Your OpenAI API key (or use `ANTHROPIC_API_KEY`)
-
-**Note**: When you click "Phone a Friend", Santa Claus will call the phone number you provide with AI-generated advice using Twilio's voice service!
-
-### 3. Database
-
-The Supabase database is already set up with:
-- 1,092 trivia questions (15 difficulty levels)
-- Game state management tables
-- Audience voting tables
-- Real-time subscriptions enabled
-
-### 4. Build Assets
-
-```bash
+cp .env.example .env
+# fill in VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
 npm run build
+npm run preview
 ```
 
-### 5. Start the Server
+Open the preview URL. `/`, `/hostjt`, `/displayurl`, `/vote`, and `/santa` all serve the app. Vite inlines `VITE_*` values when it builds, so change `.env` and run `npm run build` again.
+
+A build with those two variables missing still starts. It shows a setup screen instead of a blank page.
+
+`npm run dev` is the hot-reload server for local editing.
+
+## Environment variables
+
+### Vercel (required for the game)
+
+Set both for Production, Preview, and Development, then redeploy. They are baked into the client bundle. Do not treat them as secret, and do not put the service role key in either of them.
+
+| Name | Where it comes from |
+| --- | --- |
+| `VITE_SUPABASE_URL` | Supabase project URL, `https://<project-ref>.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon public key |
+
+### Your machine only (seed the question bank)
+
+| Name | Where it comes from |
+| --- | --- |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role key. Bypasses row level security. Never prefix it with `VITE_` and never add it to Vercel |
+
+### Supabase Edge Function secrets (Phone a Friend only)
+
+The rest of the show works without these. Phone a Friend and `/santa` call `santa-chat`, which returns text plus speech audio.
+
+| Name | Account |
+| --- | --- |
+| `OPENAI_API_KEY` | OpenAI. The function calls `gpt-4o-mini` |
+| `ELEVENLABS_API_KEY` | ElevenLabs. The function calls the text-to-speech API with a fixed voice id |
+
+Set them in the Supabase dashboard under Edge Functions, or with the CLI:
 
 ```bash
-php artisan serve
+supabase secrets set OPENAI_API_KEY=... ELEVENLABS_API_KEY=...
 ```
 
-The application will be available at http://localhost:8000
+Twilio is not used. An older Fastify process bridged Twilio calls to the OpenAI Realtime API. That server is gone, and the current lifeline uses the microphone on the display computer.
 
-## Development Mode
+## Supabase
 
-For development with hot module replacement:
+The previous project ref checked into this repo was `pvpdtmxcxjcogjgwlugz`. As of 4 November 2026 that hostname does not resolve, so create a new project. The question bank is not inside that deleted project anymore. It is in `database/data/questions.json` (1,092 questions, 15 difficulty levels).
 
 ```bash
-# Terminal 1: Start Vite dev server
-npm run dev
-
-# Terminal 2: Start Laravel server
-php artisan serve
+supabase login
+supabase link --project-ref <new-project-ref>
+supabase db push
 ```
 
-## How to Play
+`supabase db push` applies `supabase/migrations` in filename order. The first migration creates `trivia_questions`, `game_state`, and `audience_votes`, with public read/write policies for the anon key. Later migrations add the timer columns, emoji reactions, Santa audio columns, the `game_over` status, and Realtime.
 
-1. Open **/host** on your phone or tablet
-2. Open **/display** on the TV/projector
-3. Share **/vote** link with the audience for polls
-4. Start a new game and have fun!
+Then load the questions. This uses the service role key from `.env`:
 
-## Game Flow
+```bash
+npm run seed
+```
 
-1. Host starts new game
-2. Questions progress from level 1 to 15
-3. Host can use lifelines:
-   - **50/50**: Eliminates two wrong answers
-   - **Phone a Friend**: Santa Claus calls your phone with AI-generated advice (requires Twilio)
-   - **Ask the Audience**: Audience votes on their phones
-4. Host selects answer and shows correct answer
-5. Move to next question when ready
-6. Win $1,000,000 by reaching level 15!
+Run `npm run seed -- --reset` only when you mean to delete every row in `trivia_questions` and load them again.
 
-## How Phone a Friend Works
+Deploy the Phone a Friend function after the two secrets above exist:
 
-When you click "Phone a Friend":
-1. You enter your phone number (with country code)
-2. Twilio initiates a real phone call to your number
-3. Santa Claus answers with AI-generated advice from OpenAI or Anthropic
-4. Santa thinks through the question and gives you his jolly recommendation
-5. The call automatically hangs up after the advice is given
+```bash
+supabase functions deploy santa-chat --project-ref <new-project-ref>
+```
 
-## License
+The source is `supabase/functions/santa-chat/index.ts`.
 
-MIT
+Tables the app reads and writes:
+
+- `trivia_questions` — `difficulty_level` 1–15, `is_used` so a question is not drawn twice in one game
+- `game_state` — one row for the live show. Host, display, and vote pages all follow the newest `updated_at`
+- `audience_votes` — column name is `vote` (`A`–`D`), not `answer`
+- `emoji_reactions` — one row per reaction from `/vote`
+
+Realtime is enabled for `game_state`, `audience_votes`, and `emoji_reactions`. The display also polls every 2 seconds, so a missed Realtime event still catches up on the projector. The vote page does not poll.
+
+Row level security is on, and the policies allow the anon key to read and write these tables. That is what lets the audience page work with no login. It also means anyone with the anon key can change the live game. The host URL is the only thing standing between chat and the controls, so do not publish `/hostjt`.
+
+## Deploy on Vercel
+
+`vercel.json` sets the framework to Vite, the build to `npm run build`, the output to `dist`, and rewrites every path to `index.html` so client-side routes work on a refresh.
+
+1. Import this GitHub repo as a Vercel project. The framework preset should come out as Vite.
+2. Node.js version: **22.x**. Vite 7 does not build on Node 18, and Node 18 is no longer available on Vercel.
+3. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for Production, Preview, and Development.
+4. Deploy. Changing those variables requires a new deployment, because they are compiled into the JavaScript.
+5. Finish the Supabase steps above before show day. A deploy with the keys set and an empty database loads the host page, and Start New Game reports that there are no questions.
+
+No Vercel Marketplace database, Redis, or server function is required for the game as it works today.
+
+## Show day
+
+1. Open `/displayurl` on the stream PC and leave it full screen.
+2. Open `/hostjt` on a phone or laptop that stays off camera.
+3. The display QR code sends the audience to `/vote`.
+4. Start New Game. Questions go from level 1 to level 15.
+5. Lifelines, once each: 50/50, Phone a Friend (needs the edge function), Ask the Audience (opens voting on `/vote` and draws the bars on the display).
+6. Emoji reactions on `/vote` are always available, including when Ask the Audience is off.
+
+## Later: landing page, chat votes, donation lifelines
+
+Nothing here has to be rewritten for a public page to link in. A separate site can send the stream to `/displayurl` and the audience to `/vote`. Deep links work on Vercel because of the SPA rewrite. Do not link `/hostjt` from that page.
+
+What already helps:
+
+- One `game_state` row is the sync bus. Host, display, and phones subscribe to it. A new column shows up on every screen without a new websocket server.
+- Audience voting and emoji reactions already write plain rows. A chat bot can insert `{ game_state_id, vote }` into `audience_votes` the same way `/vote` does.
+- The browser is the only backend. A Vercel Function or a small worker can write the same tables with the service role key.
+
+What blocks those features if you leave the schema as it is:
+
+- Votes have no voter id, so one person, or one chat account, can submit many rows. One-vote-per-person needs a new column and a unique constraint. The client cannot be trusted to enforce it.
+- Lifelines are booleans the host page sets on itself (`lifeline_phone_used`, `lifeline_audience_used`, `lifeline_fifty_fifty_used`). There is no server check, so a "donation unlocks Phone a Friend" rule would be cosmetic unless a webhook sets something like `lifeline_phone_unlocked` with the service role and the host page reads that flag before enabling the button. Keep that key out of the client.
+- Phone a Friend listens with the display computer's speech recognition and calls the Supabase function. Chat text does not reach Santa unless something posts those lines to `santa-chat` or writes a field the display already reads.
+- The anon key will be in the public bundle. Any new table needs a deliberate policy. Copying the current public-write policies onto a donations or unlocks table would let the audience unlock lifelines without paying.
+
+`BACKUP_REACT_VERSION/`, `LARAVEL_MIGRATION.md`, `SAVE_POINT_WORKING_REACT_VERSION.md`, and `TESTING_REPORT.md` are old snapshots. They mention Laravel, Twilio, Redis, and routes that this app does not use.
