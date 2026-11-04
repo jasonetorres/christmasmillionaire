@@ -1,109 +1,33 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+import { useState } from 'react';
+import { castVote, sendReaction, useGameState } from '../lib/api';
+
+const REACTIONS = ['👏', '😮', '🤔', '😱', '🎉', '❤️', '🔥', '👍', '🎄', '🎅', '⛄', '🎁', '⭐', '🎊', '🤶', '🦌'];
 
 export default function Vote() {
+  const { snapshot, error, setSnapshot } = useGameState();
   const [voted, setVoted] = useState(false);
-  const [gameState, setGameState] = useState<any>(null);
-  const [voteCounts, setVoteCounts] = useState({ A: 0, B: 0, C: 0, D: 0 });
+  const [banner, setBanner] = useState<string | null>(null);
+  const game = snapshot?.game ?? null;
+  const votes = snapshot?.votes ?? { A: 0, B: 0, C: 0, D: 0 };
+  const canVote = Boolean(game && game.game_status === 'question_shown' && game.active_lifeline === 'audience' && !voted);
 
-  useEffect(() => {
-    checkGameState();
-
-    const gameStateChannel = supabase
-      .channel('game-state-vote')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'game_state' }, () => {
-        checkGameState();
-      })
-      .subscribe();
-
-    const votesChannel = supabase
-      .channel('audience-votes-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'audience_votes' }, async () => {
-        const { data } = await supabase
-          .from('game_state')
-          .select('*')
-          .order('updated_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        if (data?.id) {
-          loadVoteCounts(data.id);
-        }
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(gameStateChannel);
-      supabase.removeChannel(votesChannel);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (gameState?.id) {
-      loadVoteCounts();
-    }
-  }, [gameState?.id]);
-
-  const checkGameState = async () => {
-    const { data } = await supabase
-      .from('game_state')
-      .select('*')
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    setGameState(data);
-  };
-
-  const loadVoteCounts = async (stateId?: string) => {
-    const gameStateId = stateId || gameState?.id;
-    if (!gameStateId) return;
-
-    const { data: votes } = await supabase
-      .from('audience_votes')
-      .select('vote')
-      .eq('game_state_id', gameStateId);
-
-    if (votes) {
-      const counts = { A: 0, B: 0, C: 0, D: 0 };
-      votes.forEach((v: any) => {
-        if (v.vote in counts) {
-          counts[v.vote as keyof typeof counts]++;
-        }
-      });
-      setVoteCounts(counts);
-    }
-  };
-
-  const handleVote = async (answer: 'A' | 'B' | 'C' | 'D') => {
-    if (!gameState) return;
-
-    const { error } = await supabase
-      .from('audience_votes')
-      .insert({
-        game_state_id: gameState.id,
-        vote: answer,
-      });
-
-    if (!error) {
+  const submitVote = async (answer: 'A' | 'B' | 'C' | 'D') => {
+    try {
+      setSnapshot(await castVote(answer));
       setVoted(true);
-    } else {
-      alert('Failed to submit vote');
+      setBanner(null);
+    } catch (err) {
+      setBanner(err instanceof Error ? err.message : 'Failed to submit vote');
     }
   };
 
-  const sendEmoji = async (emoji: string) => {
-    if (!gameState) return;
-
-    await supabase
-      .from('emoji_reactions')
-      .insert({
-        game_state_id: gameState.id,
-        emoji: emoji,
-      });
+  const react = async (emoji: string) => {
+    try {
+      setSnapshot(await sendReaction(emoji));
+    } catch (err) {
+      setBanner(err instanceof Error ? err.message : 'Failed to send reaction');
+    }
   };
-
-  const canVote = gameState && gameState.game_status === 'question_shown' && gameState.active_lifeline === 'audience' && !voted;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 p-8 flex items-center justify-center">
@@ -115,22 +39,24 @@ export default function Vote() {
           </h1>
         </div>
 
+        {(error || banner) && (
+          <p className="text-red-200 text-center mb-4">{banner || error}</p>
+        )}
+
         {canVote ? (
           <div className="mb-14">
             <h2 className="text-2xl font-bold text-white text-center mb-4">Cast Your Vote</h2>
             <div className="grid grid-cols-2 gap-4 gap-y-12">
-              {['A', 'B', 'C', 'D'].map(answer => (
+              {(['A', 'B', 'C', 'D'] as const).map((answer) => (
                 <div key={answer} className="relative">
                   <button
-                    onClick={() => handleVote(answer as any)}
+                    onClick={() => submitVote(answer)}
                     className="w-full bg-gradient-to-br from-green-700 to-green-800 text-white p-12 rounded-xl text-6xl font-bold hover:from-green-800 hover:to-green-900 transition-all shadow-2xl hover:scale-105 border-4 border-yellow-400"
                   >
                     {answer}
                   </button>
                   <div className="absolute -bottom-8 left-0 right-0 text-center">
-                    <span className="text-yellow-300 text-xl font-bold">
-                      {voteCounts[answer as keyof typeof voteCounts]} votes
-                    </span>
+                    <span className="text-yellow-300 text-xl font-bold">{votes[answer]} votes</span>
                   </div>
                 </div>
               ))}
@@ -145,12 +71,10 @@ export default function Vote() {
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border-2 border-yellow-400">
               <h3 className="text-xl font-bold text-white text-center mb-4">Current Vote Count</h3>
               <div className="grid grid-cols-2 gap-4">
-                {['A', 'B', 'C', 'D'].map(answer => (
+                {(['A', 'B', 'C', 'D'] as const).map((answer) => (
                   <div key={answer} className="bg-gradient-to-br from-red-800 to-red-900 p-4 rounded-lg border-2 border-yellow-400 text-center">
                     <div className="text-4xl font-bold text-yellow-300 mb-1">{answer}</div>
-                    <div className="text-2xl font-bold text-white">
-                      {voteCounts[answer as keyof typeof voteCounts]}
-                    </div>
+                    <div className="text-2xl font-bold text-white">{votes[answer]}</div>
                   </div>
                 ))}
               </div>
@@ -159,9 +83,9 @@ export default function Vote() {
         ) : (
           <div className="mb-6 text-center">
             <p className="text-white text-xl mb-2">
-              {!gameState ? 'No active game 🎄' :
-               gameState.active_lifeline !== 'audience' ? 'Watching the game...' :
-               'Waiting for question... 🎄'}
+              {!game ? 'No active game 🎄' :
+                game.active_lifeline !== 'audience' ? 'Watching the game...' :
+                  'Waiting for question... 🎄'}
             </p>
           </div>
         )}
@@ -169,10 +93,10 @@ export default function Vote() {
         <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border-2 border-yellow-400">
           <p className="text-white text-center mb-3 font-semibold">Send a Reaction 🎄</p>
           <div className="flex justify-center gap-3 flex-wrap">
-            {['👏', '😮', '🤔', '😱', '🎉', '❤️', '🔥', '👍', '🎄', '🎅', '⛄', '🎁', '⭐', '🎊', '🤶', '🦌'].map(emoji => (
+            {REACTIONS.map((emoji) => (
               <button
                 key={emoji}
-                onClick={() => sendEmoji(emoji)}
+                onClick={() => react(emoji)}
                 className="text-4xl hover:scale-125 transition-all active:scale-95 bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-2 hover:from-red-700 hover:to-red-800 border-2 border-yellow-300"
               >
                 {emoji}

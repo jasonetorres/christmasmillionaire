@@ -1,3 +1,5 @@
+> Historical note (November 2026): snapshot from December 2025. The current app does not use Supabase. It uses Neon Postgres through Vercel API routes. Follow the README.
+
 # SAVE POINT - Working React/Vite Version
 
 **Date:** 2025-12-18

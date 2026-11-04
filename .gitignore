@@ -10,6 +10,8 @@ node_modules
 dist
 dist-ssr
 *.local
+.vite
+supabase/.temp
 
 .vscode/*
 !.vscode/extensions.json

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Phone, Mic, MicOff } from 'lucide-react';
+import { askSanta } from '../lib/api';
 
 interface PhoneCallScreenProps {
   questionData: {
@@ -19,6 +20,7 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
   const [isSantaSpeaking, setIsSantaSpeaking] = useState(false);
   const [callDuration, setCallDuration] = useState(0);
   const [hasGreeted, setHasGreeted] = useState(false);
+  const [callError, setCallError] = useState('');
 
   const recognitionRef = useRef<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -84,31 +86,19 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
       setHasGreeted(true);
 
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/santa-chat`,
-          {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              message: '[Phone rings and Santa answers]',
-              question: questionData.question,
-              answerA: questionData.answerA,
-              answerB: questionData.answerB,
-              answerC: questionData.answerC,
-              answerD: questionData.answerD,
-            }),
-          }
-        );
-
-        const data = await response.json();
+        const data = await askSanta({
+          message: '[Phone rings and Santa answers]',
+          question: questionData.question,
+          answerA: questionData.answerA,
+          answerB: questionData.answerB,
+          answerC: questionData.answerC,
+          answerD: questionData.answerD,
+        });
         if (data.response && data.audio) {
           playAudio(data.audio);
         }
       } catch (error) {
-        console.error('Error:', error);
+        setCallError(error instanceof Error ? error.message : 'Santa could not answer');
       }
     };
 
@@ -134,31 +124,19 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
     setIsListening(false);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/santa-chat`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: transcript,
-            question: questionData.question,
-            answerA: questionData.answerA,
-            answerB: questionData.answerB,
-            answerC: questionData.answerC,
-            answerD: questionData.answerD,
-          }),
-        }
-      );
-
-      const data = await response.json();
+      const data = await askSanta({
+        message: transcript,
+        question: questionData.question,
+        answerA: questionData.answerA,
+        answerB: questionData.answerB,
+        answerC: questionData.answerC,
+        answerD: questionData.answerD,
+      });
       if (data.response && data.audio) {
         playAudio(data.audio);
       }
     } catch (error) {
-      console.error('Error:', error);
+      setCallError(error instanceof Error ? error.message : 'Santa could not answer');
     }
   };
 
@@ -256,6 +234,7 @@ export function PhoneCallScreen({ questionData, onEnd, isHost = false }: PhoneCa
             <h3 className="text-white text-4xl font-light mb-3 tracking-wide">Santa Claus</h3>
             <p className="text-gray-400 text-xl font-light mb-1">North Pole</p>
             <p className="text-white text-2xl font-light">{formatDuration(callDuration)}</p>
+            {callError && <p className="text-red-300 text-sm mt-3">{callError}</p>}
           </div>
 
           {/* Call Controls with Microphone Button */}

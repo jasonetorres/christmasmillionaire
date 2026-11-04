@@ -1,253 +1,92 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Play, SkipForward, RotateCcw, X, RefreshCw } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { GameState, TriviaQuestion } from '../types';
+import { TriviaQuestion } from '../types';
 import { Lifelines } from '../Components/Lifelines';
 import { QuestionDisplay } from '../Components/QuestionDisplay';
 import { PhoneCallScreen } from '../Components/PhoneCallScreen';
-
-const moneyLadder = ['$100', '$200', '$300', '$500', '$1,000', '$2,000', '$4,000', '$8,000', '$16,000', '$32,000', '$64,000', '$125,000', '$250,000', '$500,000', '$1,000,000'];
+import { clearHostCode, hostAction, setHostCode, useGameState } from '../lib/api';
 
 export default function Host() {
-  const [gameState, setGameState] = useState<GameState | null>(null);
-  const [currentQuestion, setCurrentQuestion] = useState<TriviaQuestion | null>(null);
+  const { snapshot, error, setSnapshot } = useGameState();
+  const [code, setCode] = useState('');
+  const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem('christmasaire-host-code') !== null && sessionStorage.getItem('christmasaire-host-code') !== '');
+  const [banner, setBanner] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadGameState();
-  }, []);
+  const game = snapshot?.game ?? null;
+  const question = game?.current_question ?? null;
 
-  const loadGameState = async () => {
-    const { data } = await supabase
-      .from('game_state')
-      .select('*')
-      .order('updated_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (data) {
-      setGameState(data);
-      if (data.current_question_id) {
-        const { data: question } = await supabase
-          .from('trivia_questions')
-          .select('*')
-          .eq('id', data.current_question_id)
-          .maybeSingle();
-        setCurrentQuestion(question);
+  const run = async (action: string, payload: Record<string, unknown> = {}) => {
+    try {
+      setBanner(null);
+      setSnapshot(await hostAction(action, payload));
+    } catch (err) {
+      const status = (err as { status?: number }).status;
+      const message = err instanceof Error ? err.message : 'Host request failed';
+      if (status === 401) {
+        clearHostCode();
+        setUnlocked(false);
       }
+      setBanner(message);
     }
   };
 
-  const startNewGame = async () => {
-    await supabase.from('game_state').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-    await supabase.from('trivia_questions').update({ is_used: false }).eq('is_used', true);
-
-    const { data: questions } = await supabase
-      .from('trivia_questions')
-      .select('*')
-      .eq('difficulty_level', 1)
-      .eq('is_used', false);
-
-    if (questions && questions.length > 0) {
-      const question = questions[Math.floor(Math.random() * questions.length)];
-      await supabase.from('trivia_questions').update({ is_used: true }).eq('id', question.id);
-
-      const { data: newGame } = await supabase
-        .from('game_state')
-        .insert({
-          current_question_id: question.id,
-          current_level: 1,
-          game_status: 'question_shown',
-          total_winnings: '$0',
-          question_start_time: Date.now(),
-          time_limit_seconds: 30,
-        })
-        .select()
-        .single();
-
-      setGameState(newGame);
-      setCurrentQuestion(question);
+  const unlock = async () => {
+    setHostCode(code.trim());
+    try {
+      setSnapshot(await hostAction('ping'));
+      setUnlocked(true);
+      setBanner(null);
+    } catch (err) {
+      clearHostCode();
+      setBanner(err instanceof Error ? err.message : 'Host code was rejected');
     }
   };
 
-  const updateGameState = async (updates: Partial<GameState>) => {
-    if (!gameState) return;
-
-    const { data, error } = await supabase
-      .from('game_state')
-      .update(updates)
-      .eq('id', gameState.id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error updating game state:', error);
-      alert('Failed to update game state: ' + error.message);
-      return;
-    }
-
-    setGameState(data);
-  };
-
-  const handleAnswerSelect = async (answer: 'A' | 'B' | 'C' | 'D') => {
-    await updateGameState({ selected_answer: answer });
-  };
-
-  const showCorrectAnswer = async () => {
-    if (!gameState || !currentQuestion) return;
-
-    const isCorrect = gameState.selected_answer === currentQuestion.correct_answer;
-    if (!isCorrect) {
-      const guaranteedMoney = gameState.current_level <= 5 ? '$0' :
-                              gameState.current_level <= 10 ? '$1,000' : '$32,000';
-      await updateGameState({
-        show_correct: true,
-        game_status: 'game_over',
-        total_winnings: guaranteedMoney
-      });
-    } else {
-      await updateGameState({ show_correct: true });
-    }
-  };
-
-  const nextQuestion = async () => {
-    if (!gameState) return;
-
-    const nextLevel = gameState.current_level + 1;
-    if (nextLevel > 15) {
-      alert('Game completed! The contestant wins $1,000,000!');
-      return;
-    }
-
-    const { data: questions } = await supabase
-      .from('trivia_questions')
-      .select('*')
-      .eq('difficulty_level', nextLevel)
-      .eq('is_used', false);
-
-    if (!questions || questions.length === 0) {
-      alert('No more questions available at this level');
-      return;
-    }
-
-    const question = questions[Math.floor(Math.random() * questions.length)];
-    await supabase.from('trivia_questions').update({ is_used: true }).eq('id', question.id);
-    await supabase.from('audience_votes').delete().eq('game_state_id', gameState.id);
-
-    await updateGameState({
-      current_question_id: question.id,
-      current_level: nextLevel,
-      selected_answer: null,
-      show_correct: false,
-      removed_answers: [] as any,
-      active_lifeline: null,
-      total_winnings: moneyLadder[nextLevel - 1],
-      question_start_time: Date.now(),
-      time_limit_seconds: 30,
-    });
-
-    setCurrentQuestion(question);
-  };
-
-  const resetGame = async () => {
-    if (confirm('Reset the game?')) {
-      await supabase.from('game_state').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('trivia_questions').update({ is_used: false }).eq('is_used', true);
-      setGameState(null);
-      setCurrentQuestion(null);
-    }
-  };
-
-  const handleFiftyFifty = async () => {
-    if (!gameState || !currentQuestion) return;
-    const correct = currentQuestion.correct_answer;
-    const others = ['A', 'B', 'C', 'D'].filter(a => a !== correct);
-    const toRemove = others.sort(() => 0.5 - Math.random()).slice(0, 2);
-
-    await updateGameState({
-      lifeline_fifty_fifty_used: true,
-      removed_answers: toRemove as any,
-    });
-  };
-
-  const handlePhoneFriend = async () => {
-    if (!gameState || !currentQuestion) return;
-
-    await updateGameState({
-      lifeline_phone_used: true,
-      active_lifeline: 'phone',
-    });
-  };
-
-  const handleAskAudience = async () => {
-    if (!gameState) return;
-
-    await supabase.from('audience_votes').delete().eq('game_state_id', gameState.id);
-
-    await updateGameState({
-      lifeline_audience_used: true,
-      active_lifeline: 'audience',
-    });
-  };
-
-  const endLifeline = async () => {
-    await updateGameState({ active_lifeline: null });
-  };
-
-  const handleWalkAway = async () => {
-    if (!gameState) return;
-
-    const currentWinnings = gameState.total_winnings;
-    if (confirm(`Walk away with ${currentWinnings}?`)) {
-      await updateGameState({
-        game_status: 'game_over',
-        show_correct: true,
-      });
-    }
-  };
-
-  const getNewQuestion = async () => {
-    if (!gameState || !currentQuestion) return;
-
-    await supabase.from('trivia_questions').update({ is_used: false }).eq('id', currentQuestion.id);
-
-    const { data: questions } = await supabase
-      .from('trivia_questions')
-      .select('*')
-      .eq('difficulty_level', gameState.current_level)
-      .eq('is_used', false);
-
-    if (!questions || questions.length === 0) {
-      alert('No more unused questions available at this level');
-      return;
-    }
-
-    const question = questions[Math.floor(Math.random() * questions.length)];
-    await supabase.from('trivia_questions').update({ is_used: true }).eq('id', question.id);
-    await supabase.from('audience_votes').delete().eq('game_state_id', gameState.id);
-
-    await updateGameState({
-      current_question_id: question.id,
-      selected_answer: null,
-      show_correct: false,
-      removed_answers: [] as any,
-      active_lifeline: null,
-      question_start_time: Date.now(),
-      time_limit_seconds: 30,
-    });
-
-    setCurrentQuestion(question);
-  };
-
-  if (!gameState || !currentQuestion) {
+  if (!unlocked) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 p-8 flex items-center justify-center">
-        <button
-          onClick={startNewGame}
-          className="bg-gradient-to-r from-green-700 to-green-800 text-white px-12 py-6 rounded-xl text-2xl font-bold hover:from-green-800 hover:to-green-900 transition-all shadow-2xl flex items-center gap-4 border-4 border-yellow-400"
+        <form
+          className="max-w-md w-full bg-black/40 border-4 border-yellow-400 rounded-2xl p-8 text-center"
+          onSubmit={(event) => {
+            event.preventDefault();
+            unlock();
+          }}
         >
-          <Play className="w-10 h-10" />
-          Start New Game 🎄
-        </button>
+          <h1 className="text-3xl font-bold text-yellow-300 mb-4">Host code</h1>
+          <p className="text-green-100 mb-6">This stays in this browser tab. The server checks it before any host action.</p>
+          <input
+            type="password"
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            className="w-full rounded-lg px-4 py-3 text-lg text-black mb-4"
+            autoFocus
+          />
+          {(banner || error) && <p className="text-red-200 mb-4">{banner || error}</p>}
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-green-700 to-green-800 text-white px-6 py-4 rounded-xl text-xl font-bold border-4 border-yellow-400"
+          >
+            Unlock host panel
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  if (!game || !question) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 p-8 flex items-center justify-center">
+        <div className="text-center">
+          {error && <p className="text-red-200 text-xl mb-6">{error}</p>}
+          {banner && <p className="text-red-200 text-xl mb-6">{banner}</p>}
+          <button
+            onClick={() => run('start')}
+            className="bg-gradient-to-r from-green-700 to-green-800 text-white px-12 py-6 rounded-xl text-2xl font-bold hover:from-green-800 hover:to-green-900 transition-all shadow-2xl flex items-center gap-4 border-4 border-yellow-400"
+          >
+            <Play className="w-10 h-10" />
+            Start New Game 🎄
+          </button>
+        </div>
       </div>
     );
   }
@@ -259,14 +98,16 @@ export default function Host() {
           <h1 className="text-3xl font-bold text-yellow-300 drop-shadow-lg">Host Panel 🎄</h1>
           <div className="flex gap-3">
             <button
-              onClick={getNewQuestion}
+              onClick={() => run('new-question')}
               className="bg-gradient-to-r from-green-700 to-green-800 text-white px-4 py-2 rounded-lg hover:from-green-800 hover:to-green-900 transition-all flex items-center gap-2 border-2 border-yellow-400"
             >
               <RefreshCw className="w-5 h-5" />
               New Question
             </button>
             <button
-              onClick={resetGame}
+              onClick={() => {
+                if (confirm('Reset the game?')) run('reset');
+              }}
               className="bg-gradient-to-r from-red-700 to-red-800 text-white px-4 py-2 rounded-lg hover:from-red-800 hover:to-red-900 transition-all flex items-center gap-2 border-2 border-yellow-400"
             >
               <RotateCcw className="w-5 h-5" />
@@ -275,45 +116,51 @@ export default function Host() {
           </div>
         </div>
 
+        {(error || banner) && (
+          <p className="text-red-200 text-center mb-4">{banner || error}</p>
+        )}
+
         <Lifelines
-          onFiftyFifty={handleFiftyFifty}
-          onPhoneFriend={handlePhoneFriend}
-          onAskAudience={handleAskAudience}
-          fiftyFiftyUsed={gameState.lifeline_fifty_fifty_used}
-          phoneFriendUsed={gameState.lifeline_phone_used}
-          askAudienceUsed={gameState.lifeline_audience_used}
+          onFiftyFifty={() => run('fifty')}
+          onPhoneFriend={() => run('phone')}
+          onAskAudience={() => run('audience')}
+          fiftyFiftyUsed={game.lifeline_fifty_fifty_used}
+          phoneFriendUsed={game.lifeline_phone_used}
+          askAudienceUsed={game.lifeline_audience_used}
           disabled={false}
         />
 
         <QuestionDisplay
-          question={currentQuestion}
-          onAnswer={handleAnswerSelect}
-          selectedAnswer={gameState.selected_answer as any}
-          showResult={gameState.show_correct}
-          removedAnswers={new Set((gameState.removed_answers as any[]) || [])}
+          question={question}
+          onAnswer={(answer) => run('select-answer', { answer })}
+          selectedAnswer={game.selected_answer as 'A' | 'B' | 'C' | 'D' | null}
+          showResult={game.show_correct}
+          removedAnswers={new Set(game.removed_answers || []) as Set<'A' | 'B' | 'C' | 'D'>}
           disabled={false}
         />
 
         <div className="flex gap-4 mt-8">
-          {gameState.game_status !== 'game_over' && (
+          {game.game_status !== 'game_over' && (
             <>
               <button
-                onClick={handleWalkAway}
-                disabled={gameState.show_correct || gameState.current_level === 1}
+                onClick={() => {
+                  if (confirm(`Walk away with ${game.total_winnings}?`)) run('walk-away');
+                }}
+                disabled={game.show_correct || game.current_level === 1}
                 className="flex-1 bg-gradient-to-r from-yellow-600 to-yellow-700 text-white px-6 py-4 rounded-lg font-bold hover:from-yellow-700 hover:to-yellow-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-yellow-300"
               >
                 Walk Away
               </button>
               <button
-                onClick={showCorrectAnswer}
-                disabled={!gameState.selected_answer || gameState.show_correct}
+                onClick={() => run('reveal')}
+                disabled={!game.selected_answer || game.show_correct}
                 className="flex-1 bg-gradient-to-r from-green-700 to-green-800 text-white px-6 py-4 rounded-lg font-bold hover:from-green-800 hover:to-green-900 transition-all disabled:opacity-50 disabled:cursor-not-allowed border-2 border-yellow-400"
               >
                 Show Correct Answer
               </button>
               <button
-                onClick={nextQuestion}
-                disabled={!gameState.show_correct}
+                onClick={() => run('next')}
+                disabled={!game.show_correct}
                 className="flex-1 bg-gradient-to-r from-red-700 to-red-800 text-white px-6 py-4 rounded-lg font-bold hover:from-red-800 hover:to-red-900 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-yellow-400"
               >
                 <SkipForward className="w-6 h-6" />
@@ -321,9 +168,9 @@ export default function Host() {
               </button>
             </>
           )}
-          {gameState.game_status === 'game_over' && (
+          {game.game_status === 'game_over' && (
             <button
-              onClick={resetGame}
+              onClick={() => run('reset')}
               className="flex-1 bg-gradient-to-r from-red-700 to-red-800 text-white px-6 py-4 rounded-lg font-bold hover:from-red-800 hover:to-red-900 transition-all border-2 border-yellow-400"
             >
               End Game
@@ -331,10 +178,10 @@ export default function Host() {
           )}
         </div>
 
-        {gameState.active_lifeline && (
+        {game.active_lifeline && (
           <div className="mt-4">
             <button
-              onClick={endLifeline}
+              onClick={() => run('end-lifeline')}
               className="w-full bg-gradient-to-r from-red-700 to-red-800 text-white px-6 py-3 rounded-lg font-bold hover:from-red-800 hover:to-red-900 transition-all flex items-center justify-center gap-2 border-2 border-yellow-400"
             >
               <X className="w-5 h-5" />
@@ -347,23 +194,23 @@ export default function Host() {
           <div className="text-center">
             <p className="text-green-300 text-sm font-semibold mb-2">CORRECT ANSWER</p>
             <p className="text-green-100 text-3xl font-bold">
-              {currentQuestion.correct_answer}: {currentQuestion[`answer_${currentQuestion.correct_answer.toLowerCase()}` as keyof TriviaQuestion]}
+              {question.correct_answer}: {question[`answer_${question.correct_answer.toLowerCase()}` as keyof TriviaQuestion]}
             </p>
           </div>
         </div>
       </div>
 
-      {gameState.active_lifeline === 'phone' && currentQuestion && (
+      {game.active_lifeline === 'phone' && (
         <PhoneCallScreen
           questionData={{
-            question: currentQuestion.question,
-            answerA: currentQuestion.answer_a,
-            answerB: currentQuestion.answer_b,
-            answerC: currentQuestion.answer_c,
-            answerD: currentQuestion.answer_d,
-            correctAnswer: currentQuestion.correct_answer,
+            question: question.question,
+            answerA: question.answer_a,
+            answerB: question.answer_b,
+            answerC: question.answer_c,
+            answerD: question.answer_d,
+            correctAnswer: question.correct_answer,
           }}
-          onEnd={endLifeline}
+          onEnd={() => run('end-lifeline')}
           isHost={true}
         />
       )}

@@ -33,6 +33,6 @@ export interface GameState {
 export interface AudienceVote {
   id: string;
   game_state_id: string;
-  answer: 'A' | 'B' | 'C' | 'D';
+  vote: 'A' | 'B' | 'C' | 'D';
   created_at: string;
 }

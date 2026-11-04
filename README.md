@@ -1,125 +1,105 @@
-# Who Wants to Be a Millionaire - Christmas Edition
+# Who Wants to Be a Christmasaire?
 
-A real-time trivia game built with Laravel, Inertia.js, React, and Supabase.
+Real-time Christmas trivia game for Jason Torres' charity stream. The host drives the show, a projector shows the board, and the audience joins from their phones.
 
-## Features
+The site is a Vite + React app on Vercel. The browser never talks to the database. It calls `/api/*` functions, and those functions use Neon Postgres through `DATABASE_URL`.
 
-- **Host Panel**: Control the game, manage lifelines, show answers
-- **Display Panel**: Big screen display with real-time updates
-- **Audience Voting**: Allow audience participation with live polls
-- **Lifelines**: 50/50, Phone a Friend (real Twilio calls!), Ask the Audience
-- **Real-time Updates**: Powered by Supabase Realtime
-- **AI-Powered Santa**: OpenAI/Anthropic-powered Santa Claus calls you with advice
-- **1,092 Questions**: Across 15 difficulty levels
+## Routes
 
-## Tech Stack
+| Path | Who uses it |
+| --- | --- |
+| `/` | Picker for the host panel and the display |
+| `/hostjt` | Host controls. Asks for the host code, then calls `/api/host` |
+| `/displayurl` | Projector / stream view. Polls `/api/state` every 2 seconds |
+| `/vote` | Audience phones. QR code on the display points here |
+| `/santa` | Standalone Santa call. Same API as Phone a Friend |
 
-- Laravel 11 (Backend Framework)
-- Inertia.js (React Integration)
-- React 18 with TypeScript
-- Supabase (Database + Realtime)
-- Tailwind CSS
-- Vite
+## Environment variables
 
-## Setup
+Set these on the Vercel project for Production, Preview, and Development. None of them are prefixed with `VITE_`, so they stay on the server.
 
-### 1. Install Dependencies
+| Name | Required | Purpose |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | Neon Postgres connection string. Any standard Postgres URL also works, which is how local runs are checked |
+| `HOST_CODE` | Yes | Shared secret for `/api/host`. The host page sends it as the `x-host-code` header. Chat cannot start the game, reveal answers, or use lifelines without it |
+| `OPENAI_API_KEY` | No | Phone a Friend and `/santa`. `gpt-4o-mini` |
+| `ELEVENLABS_API_KEY` | No | Speech audio for that same route |
+
+If either AI key is missing, `/api/santa-chat` returns a clear error and the rest of the show still runs.
+
+Copy `.env.example` to `.env` for local commands. `npm run db:migrate`, `npm run seed`, and the API server read that file. Do not commit it.
+
+## Database
+
+One idempotent migration, `db/migrations/001_schema.sql`, creates:
+
+- `trivia_questions`
+- `game_state`
+- `audience_votes` (`vote` is `A`–`D`)
+- `emoji_reactions`
 
 ```bash
-# Install PHP dependencies
-composer install
+npm run db:migrate
+npm run seed
+```
 
-# Install JavaScript dependencies
+Both read `DATABASE_URL`. `db:migrate` can be run again. `npm run seed` loads `database/data/questions.json` (1,092 questions). If the table already has rows it leaves them alone. `npm run seed -- --reset` deletes and reloads them.
+
+On Vercel, the Neon integration can create the database and inject `DATABASE_URL`. You still run the two commands above against that URL yourself. The old Supabase project is not used.
+
+API routes use `@neondatabase/serverless` when `DATABASE_URL` points at `*.neon.tech`, and `pg` for any other Postgres URL.
+
+## Local production build
+
+Node.js 22.
+
+```bash
 npm install
-```
-
-### 2. Environment Variables
-
-Your `.env` file is already configured with Supabase credentials. The key variables are:
-
-```env
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-APP_KEY=your_laravel_app_key
-```
-
-### 2. Configure Twilio for Real Phone Calls (Optional)
-
-To enable the "Phone a Friend" lifeline with real phone calls:
-
-1. Sign up for a [Twilio account](https://www.twilio.com/try-twilio)
-2. Get your Account SID, Auth Token, and a Twilio phone number
-3. In your Supabase Dashboard, go to **Project Settings > Edge Functions**
-4. Add these secrets:
-   - `TWILIO_ACCOUNT_SID` - Your Twilio Account SID
-   - `TWILIO_AUTH_TOKEN` - Your Twilio Auth Token
-   - `TWILIO_PHONE_NUMBER` - Your Twilio phone number (format: +1234567890)
-   - `OPENAI_API_KEY` - Your OpenAI API key (or use `ANTHROPIC_API_KEY`)
-
-**Note**: When you click "Phone a Friend", Santa Claus will call the phone number you provide with AI-generated advice using Twilio's voice service!
-
-### 3. Database
-
-The Supabase database is already set up with:
-- 1,092 trivia questions (15 difficulty levels)
-- Game state management tables
-- Audience voting tables
-- Real-time subscriptions enabled
-
-### 4. Build Assets
-
-```bash
+cp .env.example .env
+# fill in DATABASE_URL and HOST_CODE
+npm run db:migrate
+npm run seed
 npm run build
+npm run preview
 ```
 
-### 5. Start the Server
+`npm run preview` serves the production build and the API together. `npm run dev` is the same pair with hot reload. The Vite server proxies `/api` to the local API on port 3001.
 
-```bash
-php artisan serve
-```
+Open `/`. Host Panel asks for `HOST_CODE`. Display and Vote update from the database about every 2 seconds. There is no Supabase Realtime channel. The display already polled on a timer, and the vote page now does too, so votes and reactions stay in sync without a websocket.
 
-The application will be available at http://localhost:8000
+## Deploy on Vercel
 
-## Development Mode
+`vercel.json` builds with Vite, publishes `dist`, and rewrites non-API paths to `index.html`. Files in `api/` are the Node.js functions.
 
-For development with hot module replacement:
+1. Import this repo. Framework preset: Vite. Node.js 22.
+2. Add `DATABASE_URL` and `HOST_CODE`. Add the two AI keys only if Santa should talk.
+3. Deploy.
+4. From a machine that has the same `DATABASE_URL`, run `npm run db:migrate` and `npm run seed`.
 
-```bash
-# Terminal 1: Start Vite dev server
-npm run dev
+## Show day
 
-# Terminal 2: Start Laravel server
-php artisan serve
-```
+1. Open `/displayurl` on the stream PC.
+2. Open `/hostjt` on a phone or laptop that stays off camera, and enter the host code.
+3. The display QR code sends the audience to `/vote`.
+4. Start New Game. Questions go from level 1 to level 15.
+5. Lifelines, once each: 50/50, Phone a Friend, Ask the Audience.
+6. Emoji reactions on `/vote` work whenever a game is in progress. Votes are accepted only while Ask the Audience is the active lifeline.
 
-## How to Play
+## Later: landing page, chat votes, donation lifelines
 
-1. Open **/host** on your phone or tablet
-2. Open **/display** on the TV/projector
-3. Share **/vote** link with the audience for polls
-4. Start a new game and have fun!
+A separate site can link to `/displayurl` and `/vote`. Leave `/hostjt` off that page. The host code is what actually stops someone who finds the URL.
 
-## Game Flow
+What already helps:
 
-1. Host starts new game
-2. Questions progress from level 1 to 15
-3. Host can use lifelines:
-   - **50/50**: Eliminates two wrong answers
-   - **Phone a Friend**: Santa Claus calls your phone with AI-generated advice (requires Twilio)
-   - **Ask the Audience**: Audience votes on their phones
-4. Host selects answer and shows correct answer
-5. Move to next question when ready
-6. Win $1,000,000 by reaching level 15!
+- One `game_state` row is still the show. Display and vote both read it from `GET /api/state`.
+- Audience votes are `POST /api/votes` with `{ "vote": "A" }`. A chat bot can call that same route while Ask the Audience is open. It does not need the host code.
+- Reactions are `POST /api/reactions` with `{ "emoji": "🎄" }`.
+- Adding a column on `game_state` shows up on the next poll, which is at most about 2 seconds.
 
-## How Phone a Friend Works
+What still needs a server check:
 
-When you click "Phone a Friend":
-1. You enter your phone number (with country code)
-2. Twilio initiates a real phone call to your number
-3. Santa Claus answers with AI-generated advice from OpenAI or Anthropic
-4. Santa thinks through the question and gives you his jolly recommendation
-5. The call automatically hangs up after the advice is given
+- Votes have no voter id, so one person can submit many rows while voting is open.
+- Lifelines turn on only through `/api/host`, which checks `HOST_CODE`. A donation webhook can set a new column such as `lifeline_phone_unlocked` if that webhook has its own secret. Do not put `DATABASE_URL` or `HOST_CODE` in the browser.
+- Phone a Friend is `POST /api/santa-chat`. Chat text does not reach Santa unless something posts it there. The route does not receive the correct letter.
 
-## License
-
-MIT
+`BACKUP_REACT_VERSION/`, `LARAVEL_MIGRATION.md`, `SAVE_POINT_WORKING_REACT_VERSION.md`, and `TESTING_REPORT.md` are old snapshots. They describe Supabase, Laravel, and Twilio, which this app does not use.
