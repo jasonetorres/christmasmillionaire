@@ -1,4 +1,4 @@
-> Historical note (November 2026): snapshot from December 2025. Routes in the current app are `/hostjt`, `/displayurl`, `/vote`, and `/santa`. The database column for a vote is `vote`, and question level is `difficulty_level`. Follow the README.
+> Historical note (November 2026): snapshot from December 2025. The current app does not use Supabase. It uses Neon Postgres through Vercel API routes. Follow the README.
 
 # SAVE POINT - Working React/Vite Version
 

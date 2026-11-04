@@ -4,14 +4,8 @@ import Host from './Pages/Host';
 import Display from './Pages/Display';
 import Vote from './Pages/Vote';
 import Santa from './Pages/Santa';
-import SetupRequired from './Components/SetupRequired';
-import { isSupabaseConfigured } from './lib/supabase';
 
 function App() {
-  if (!isSupabaseConfigured) {
-    return <SetupRequired />;
-  }
-
   return (
     <BrowserRouter>
       <Routes>
