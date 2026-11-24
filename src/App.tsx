@@ -6,6 +6,7 @@ import Vote from './Pages/Vote';
 import Santa from './Pages/Santa';
 import GameRoute from './show/GameRoute';
 import StreamHub from './show/StreamHub';
+import { StreamAudiencePage } from './show/StreamInteractive';
 import './show/stream.css';
 
 function MillionaireLayout() {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/" element={<Welcome />} />
         <Route path="/stream" element={<StreamHub />} />
         <Route path="/stream/display" element={<StreamHub />} />
+        <Route path="/react" element={<StreamAudiencePage />} />
         <Route path="/games/:id" element={<GameRoute />} />
         <Route path="/displayurl" element={<Display />} />
         <Route element={<MillionaireLayout />}>
