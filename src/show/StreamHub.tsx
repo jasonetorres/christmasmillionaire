@@ -115,9 +115,7 @@ function useClock(liveStartedAt: number | null) {
 }
 
 export default function StreamHub() {
-  const path = window.location.pathname;
-  if (path === '/react') return <StreamAudiencePage />;
-  const display = path.endsWith('/display');
+  const display = window.location.pathname.endsWith('/display');
   const { room, update } = useRoom();
   return display ? <StreamDisplay room={room} /> : <ProducerRoom room={room} update={update} />;
 }
