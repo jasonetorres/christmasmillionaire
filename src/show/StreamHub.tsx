@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { StreamAudienceQr, StreamBroadcastEffects, StreamInteractivePanel } from './StreamInteractive';
 
 type GameId = 'price' | 'feud' | 'wheel' | 'deal' | 'password' | 'millionaire';
 type RoomState = {
@@ -16,7 +17,8 @@ type RoomState = {
   tiltifyOverlayUrl: string;
 };
 const STORAGE_KEY = 'north-pole-stream-room-v1';
-const DEFAULT_SPONSORS = ['Laravel', 'Unkey', 'Mux', 'CoderHQ', 'WeMakeDevs', 'Tighten', 'CodeRabbit', 'Resend', 'RenderATL', 'Torc'];
+const DEFAULT_SPONSORS = ['Laravel', 'Unkey', 'Mux', 'CoderHQ', 'WeMakeDevs', 'Tighten', 'CodeRabbit', 'Resend', 'RenderATL', 'Torc', 'Level Up'];
+const SPONSOR_MIGRATION_KEY = 'north-pole-level-up-sponsor-v1';
 const DEFAULT_STATE: RoomState = {
   gameId: 'price',
   live: false,
@@ -47,7 +49,16 @@ const scheduleEnd = new Date('2026-12-18T20:00:00-05:00').getTime();
 function readRoom(): RoomState {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-    return saved ? { ...DEFAULT_STATE, ...saved, gameId: asGameId(saved.gameId) } : DEFAULT_STATE;
+    if (!saved) return DEFAULT_STATE;
+    const sponsors = Array.isArray(saved.sponsors) ? saved.sponsors : DEFAULT_SPONSORS;
+    const needsSponsorMigration = !localStorage.getItem(SPONSOR_MIGRATION_KEY);
+    const nextSponsors = needsSponsorMigration && !sponsors.includes('Level Up') ? [...sponsors, 'Level Up'] : sponsors;
+    const room = { ...DEFAULT_STATE, ...saved, sponsors: nextSponsors, gameId: asGameId(saved.gameId) };
+    if (needsSponsorMigration) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(room));
+      localStorage.setItem(SPONSOR_MIGRATION_KEY, 'done');
+    }
+    return room;
   } catch {
     return DEFAULT_STATE;
   }
@@ -104,7 +115,9 @@ function useClock(liveStartedAt: number | null) {
 }
 
 export default function StreamHub() {
-  const display = window.location.pathname.endsWith('/display');
+  const path = window.location.pathname;
+  if (path === '/react') return <StreamAudiencePage />;
+  const display = path.endsWith('/display');
   const { room, update } = useRoom();
   return display ? <StreamDisplay room={room} /> : <ProducerRoom room={room} update={update} />;
 }
@@ -151,14 +164,7 @@ function ProducerRoom({ room, update }: { room: RoomState; update: (changes: Par
           <p className="studio-helper">Game controls are embedded here. Updates sync to the game view inside the stream display.</p>
         </div>
 
-        <div className="studio-lineup-card">
-          <div className="studio-card-title"><div><p className="studio-kicker">THE SIX-HOUR RUN OF SHOW</p><h2>Tonight’s lineup</h2></div><span>Eastern Time</span></div>
-          <div className="studio-lineup">
-            {lineup.map((item, index) => <button key={item.id} className={'studio-lineup-item' + (item.id === room.gameId ? ' is-selected' : '')} onClick={() => update({ gameId: item.id, standby: false })}>
-              <span className="studio-lineup-index">{String(index + 1).padStart(2, '0')}</span><span className="studio-lineup-icon">{item.icon}</span><span className="studio-lineup-copy"><strong>{item.name}</strong><small>{item.time}</small></span><span className="studio-lineup-status">{item.id === room.gameId ? 'SELECTED' : 'READY'}</span>
-            </button>)}
-          </div>
-        </div>
+        <StreamInteractivePanel />
       </section>
 
       <aside className="studio-sidebar">
@@ -214,7 +220,11 @@ function StreamDisplay({ room }: { room: RoomState }) {
         : <iframe key={room.gameId} src={displayPath(room.gameId)} title={active.name + ' broadcast view'} />}
     </div>
 
-    <aside className="stream-chat-rail" aria-label="Chat background" />
+    <aside className="stream-chat-rail" aria-label="Audience reaction panel">
+      <div className="stream-chat-surface" aria-hidden="true" />
+      <StreamAudienceQr />
+    </aside>
+    <StreamBroadcastEffects />
 
     <div className="stream-bottom-dock">
       {room.goalVisible && <section className="stream-display-goal" aria-label="Fundraising progress">
