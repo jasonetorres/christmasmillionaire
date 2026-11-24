@@ -181,7 +181,8 @@ function ProducerRoom({ room, update }: { room: RoomState; update: (changes: Par
           <div className="studio-connect-box">
             <strong>Tiltify overlay URL</strong>
             <input type="url" placeholder="Paste a Tiltify overlay URL to show live totals" value={room.tiltifyOverlayUrl} onChange={overlayChanged} />
-            <small>Get the live overlay URL in your campaign’s Branding section. Leave blank to use the editable tracker above.</small>
+            <a className="studio-text-link" href="https://app.tiltify.com/fundraiser/afdda1d4-18f7-4c19-8095-eb4552c3d8b7/branding/overlays" target="_blank" rel="noreferrer">Edit this overlay in Tiltify</a>
+            <small>Use a 1920×1080 layout. Keep the Alert Box for donation pops; turn off Classic Overlay if you want to avoid duplicating the stream’s native goal bar. The overlay URL is saved in this browser’s control-room settings.</small>
           </div>
           <label className="studio-toggle studio-goal-toggle"><input type="checkbox" checked={room.goalVisible} onChange={event => update({ goalVisible: event.target.checked })} /><span>Show fundraiser tracker on stream</span></label>
         </section>
