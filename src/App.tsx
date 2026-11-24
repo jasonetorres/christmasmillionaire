@@ -4,8 +4,9 @@ import Host from './Pages/Host';
 import Display from './Pages/Display';
 import Vote from './Pages/Vote';
 import Santa from './Pages/Santa';
-
 import GameRoute from './show/GameRoute';
+import StreamHub from './show/StreamHub';
+import './show/stream.css';
 
 function MillionaireLayout() {
   return <div className="np-legacy">
@@ -19,6 +20,8 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Welcome />} />
+        <Route path="/stream" element={<StreamHub />} />
+        <Route path="/stream/display" element={<StreamHub />} />
         <Route path="/games/:id" element={<GameRoute />} />
         <Route path="/displayurl" element={<Display />} />
         <Route element={<MillionaireLayout />}>
