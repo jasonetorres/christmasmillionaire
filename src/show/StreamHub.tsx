@@ -214,11 +214,7 @@ function StreamDisplay({ room }: { room: RoomState }) {
         : <iframe key={room.gameId} src={displayPath(room.gameId)} title={active.name + ' broadcast view'} />}
     </div>
 
-    <aside className="stream-chat-rail" aria-label="Chat background">
-      <div className="stream-chat-heading"><span>✦</span><div><strong>COMMUNITY CHAT</strong><small>THE NORTH POLE MESSAGE BOARD</small></div></div>
-      <div className="stream-chat-surface" aria-hidden="true" />
-      <div className="stream-chat-footer"><span>✦</span> Good tidings from the community</div>
-    </aside>
+    <aside className="stream-chat-rail" aria-label="Chat background" />ide>
 
     <div className="stream-bottom-dock">
       {room.goalVisible && <section className="stream-display-goal" aria-label="Fundraising progress">
