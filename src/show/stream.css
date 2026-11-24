@@ -460,3 +460,104 @@
   .stream-bottom-dock { right: 2.3%; }
   .stream-standby h1 { white-space: normal; }
 }
+
+
+/* Live show interaction and audience reaction experience. */
+.studio-interactive-card { display:grid; gap:17px; }
+.studio-interactive-live { color:#397b63 !important; font-size:10px !important; letter-spacing:.08em; }
+.studio-interactive-grid { display:grid; gap:15px; }
+.studio-interactive-section { display:grid; gap:8px; }
+.studio-interactive-label { color:#3c6b60; font-size:11px; letter-spacing:.1em; }
+.studio-message-form { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px; }
+.studio-message-form input,.studio-host-code input {
+  min-width:0; min-height:44px; box-sizing:border-box; padding:11px 13px;
+  border:1px solid #bdd4ce; border-radius:11px; color:var(--studio-ink);
+  background:#fff; font:600 12px 'JetBrains Mono',monospace;
+}
+.studio-message-form button,.studio-sound-buttons button {
+  min-height:42px; padding:9px 12px; border:1px solid #b9d3ca; border-radius:11px;
+  color:#fff; background:#254f55; box-shadow:0 3px 0 #163d42;
+  font:800 11px 'JetBrains Mono',monospace; cursor:pointer;
+}
+.studio-message-form button:disabled,.studio-sound-buttons button:disabled { opacity:.5; cursor:wait; }
+.studio-interactive-section small { color:#66847d; font-size:11px; line-height:1.5; }
+.studio-sound-buttons { display:flex; flex-wrap:wrap; gap:8px; }
+.studio-sound-buttons button { min-height:38px; color:#254f55; background:#edf6e7; box-shadow:0 3px 0 #c9ddc8; }
+.studio-host-code { display:grid; gap:7px; color:#50736d; font-size:10px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; }
+.studio-interactive-status { min-height:18px; color:#47776d; font-size:11px; line-height:1.5; }
+
+.stream-chat-rail { grid-template-rows:minmax(0,1fr) auto; }
+.stream-chat-surface { margin-bottom:8px; }
+.stream-audience-qr {
+  display:grid; justify-items:center; gap:10px; margin:0 12px 12px; padding:15px 12px 13px;
+  border:1px solid #c6dbcc; border-radius:17px; background:#fffbeded;
+  box-shadow:0 4px 0 #387f8520; text-align:center;
+}
+.stream-qr-code { display:grid; place-items:center; padding:8px; border-radius:12px; background:#fffbed; }
+.stream-qr-copy { display:grid; gap:4px; }
+.stream-qr-copy strong { color:#254f55; font-size:clamp(10px,.75vw,13px); letter-spacing:.09em; }
+.stream-qr-copy span { color:#52766e; font-size:clamp(9px,.62vw,11px); }
+.stream-reaction-float {
+  position:absolute; z-index:6; bottom:9%; pointer-events:none; font-size:clamp(34px,5vw,82px);
+  filter:drop-shadow(0 6px 12px #254f5540); animation:stream-reaction-rise 4.2s cubic-bezier(.17,.67,.31,1) both;
+}
+.stream-live-message {
+  position:absolute; z-index:7; left:50%; bottom:12%; display:grid; gap:8px;
+  width:min(68vw,940px); padding:19px 26px; transform:translateX(-50%);
+  border:1px solid #e4d28b; border-radius:18px; color:#254f55;
+  background:linear-gradient(110deg,#fffbedf5,#fce6aaf5);
+  box-shadow:0 12px 40px #173d4b45; text-align:center; animation:stream-message-in .35s ease-out both;
+}
+.stream-live-message span { color:#b53336; font-size:11px; font-weight:900; letter-spacing:.18em; }
+.stream-live-message strong { overflow-wrap:anywhere; font-size:clamp(18px,2.1vw,34px); line-height:1.2; }
+.stream-enable-sound {
+  position:absolute; z-index:8; top:13%; right:calc(var(--stream-chat-width) + 4.2%); padding:9px 12px;
+  border:1px solid #c6dbcc; border-radius:999px; color:#254f55; background:#fffbeded;
+  box-shadow:0 3px 0 #387f8529; font:800 10px 'JetBrains Mono',monospace; cursor:pointer;
+}
+.stream-overlay-connection { position:absolute; top:0; left:0; width:1px; height:1px; }
+@keyframes stream-reaction-rise { 0% { opacity:0; transform:translateY(25px) scale(.65) rotate(-8deg); } 12% { opacity:1; } 78% { opacity:1; } 100% { opacity:0; transform:translateY(-68vh) scale(1.2) rotate(10deg); } }
+@keyframes stream-message-in { from { opacity:0; transform:translate(-50%,20px) scale(.96); } to { opacity:1; transform:translate(-50%,0) scale(1); } }
+
+.stream-audience-page {
+  min-height:100svh; display:grid; place-items:center; box-sizing:border-box; padding:22px;
+  color:#254f55; font-family:'JetBrains Mono',monospace;
+  background:
+    radial-gradient(circle at 20px 33px,#ffffffa8 0 2px,transparent 3px) 0 0 / 109px 89px,
+    radial-gradient(circle at 24px 18px,#ffffff80 0 1px,transparent 2px) 0 0 / 63px 47px,
+    linear-gradient(#8fd3f0,#e6f6f4);
+}
+.stream-audience-card {
+  width:min(100%,520px); box-sizing:border-box; padding:clamp(23px,5vw,42px);
+  border:1px solid #c6dbcc; border-radius:28px; background:#fffbed;
+  box-shadow:0 7px 0 #387f8529,0 24px 60px #295c6a24;
+}
+.stream-audience-brand { display:flex; align-items:center; gap:11px; margin-bottom:34px; color:#254f55; font-size:12px; font-weight:900; letter-spacing:.13em; }
+.stream-audience-brand span { display:grid; place-items:center; width:38px; height:38px; border-radius:12px; color:white; background:#b53336; font-size:20px; }
+.stream-audience-card h1 { margin:0; font-size:clamp(34px,9vw,56px); line-height:1.02; letter-spacing:-.08em; }
+.stream-audience-intro { margin:14px 0 22px; color:#52766e; font-size:14px; line-height:1.65; }
+.stream-audience-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.stream-audience-grid button {
+  aspect-ratio:1; min-width:0; border:1px solid #c6dbcc; border-radius:17px;
+  color:#254f55; background:#edf6e7; box-shadow:0 4px 0 #c6dbcc;
+  font:normal clamp(25px,8vw,38px) system-ui,sans-serif; cursor:pointer;
+  transition:transform .15s ease,background .15s ease,box-shadow .15s ease;
+}
+.stream-audience-grid button:hover,.stream-audience-grid button.is-selected { transform:translateY(-2px); background:#fff0d1; box-shadow:0 6px 0 #e8d7a2; }
+.stream-audience-grid button:disabled { cursor:wait; }
+.stream-audience-notice { min-height:24px; margin:20px 0 7px; color:#397b63; font-size:13px; font-weight:700; line-height:1.5; }
+.stream-audience-footer { color:#66847d; font-size:11px; line-height:1.5; }
+@media(max-width:900px) {
+  .studio-interactive-card { grid-column:1/-1; }
+}
+@media(max-width:620px) {
+  .studio-message-form { grid-template-columns:1fr; }
+  .stream-audience-qr { padding:10px; }
+  .stream-qr-code svg { width:76px; height:76px; }
+  .stream-live-message { width:88vw; box-sizing:border-box; }
+  .stream-enable-sound { top:13%; right:3%; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .stream-reaction-float,.stream-live-message { animation:none; }
+  .stream-audience-grid button { transition:none; }
+}
