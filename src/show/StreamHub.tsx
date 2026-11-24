@@ -211,7 +211,7 @@ function StreamDisplay({ room }: { room: RoomState }) {
   const active = lineup.find(item => item.id === room.gameId) ?? lineup[0];
   const percent = Math.max(0, Math.min(100, room.goal ? room.raised / room.goal * 100 : 0));
 
-  return <main className="stream-display">
+  return <main className={"stream-display stream-display-" + room.gameId}>
     <div className="stream-display-game">
       {room.standby
         ? <div className="stream-standby"><span>✦</span><p>JASON TORRES PRESENTS</p><h1>Christmas Game Night</h1><div className="stream-standby-rule" /><strong>DECEMBER 18 · 2–8 PM EASTERN</strong><small>Six games. One very merry fundraiser.</small></div>
