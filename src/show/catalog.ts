@@ -3,6 +3,7 @@ export const shows = [
   { id: 'feud', title: 'Holiday Family Feud', icon: '☃️', description: 'Find the answers on the survey board.' },
   { id: 'wheel', title: 'Wheel of Winter', icon: '❄️', description: 'Spin, call a letter, and solve the holiday puzzle.' },
   { id: 'deal', title: 'Deal or No Sleigh', icon: '🎁', description: 'Pick a gift and decide when to take the banker’s offer.' },
+  { id: 'password', title: 'North Pole Password', icon: '🔑', description: 'Give one-word clues and guess the hidden holiday word.' },
 ] as const;
 
 export const prices = [
@@ -31,3 +32,10 @@ export const surveys = [
   ['Name a holiday cookie people make.', [['Sugar cookie', 33], ['Gingerbread', 26], ['Chocolate chip', 19], ['Shortbread', 13], ['Thumbprint', 9]]],
   ['Name something that goes wrong with holiday lights.', [['Tangled wires', 36], ['A dead bulb', 28], ['Cord too short', 16], ['They fall down', 11], ['Wrong color', 9]]],
 ] as const;
+
+export const passwords = [
+  'Tinsel', 'Mistletoe', 'Snowflake', 'Reindeer', 'Ornament', 'Chimney',
+  'Fruitcake', 'Stocking', 'Nutcracker', 'Sleigh', 'Wreath', 'Gingerbread',
+  'Workshop', 'Snowman', 'Eggnog', 'Icicle', 'Caroler', 'Poinsettia',
+  'Fireplace', 'December', 'Ribbon', 'Blizzard', 'Cocoa', 'Evergreen',
+];

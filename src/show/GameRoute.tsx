@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { prices, puzzles, shows, surveys } from './catalog';
+import { passwords, prices, puzzles, shows, surveys } from './catalog';
 
 type Game = typeof shows[number]['id'];
 type Board = {
@@ -9,6 +9,7 @@ type Board = {
   scores: number[];
   team: number;
   strikes: number;
+  clues?: string[];
   revealed: number[];
   guesses: number[];
   settled: boolean;
@@ -27,7 +28,7 @@ const wedges = [100, 250, 500, 0, 300, 750, -1, 400];
 const teams = ['Team Holly', 'Team Pine'];
 const clean = (text: string) => text.toUpperCase().replace(/[^A-Z]/g, '');
 const initial = (round = 0, scores = [0, 0]): Board => ({
-  round, scores, team: round % 2, strikes: 0, revealed: [], guesses: [], settled: false,
+  round, scores, clues: [], team: round % 2, strikes: 0, revealed: [], guesses: [], settled: false,
   letters: [], spin: null, rotation: 0, message: '', gifts: [], held: null, offer: null, prize: null,
 });
 
@@ -218,7 +219,56 @@ function GameBoard({ show }: { show: typeof shows[number] }) {
     </>;
   }
 
-  const games: Record<Game, () => JSX.Element> = { price: renderPrice, feud: renderFeud, wheel: renderWheel, deal: renderDeal };
+  function renderPassword() {
+    const password = passwords[board.round % passwords.length];
+    const clues = board.clues ?? [];
+    const points = Math.max(1, 5 - board.strikes);
+
+    function giveClue(event: FormEvent<HTMLFormElement>) {
+      event.preventDefault();
+      const clue = entry.trim();
+      if (!/^[a-z]+$/i.test(clue) || clean(clue) === clean(password) || clues.some(value => clean(value) === clean(clue))) {
+        update({ message: 'Use one new word other than the password.' });
+        return;
+      }
+      update({ clues: [...clues, clue], message: '' });
+      setEntry('');
+    }
+
+    function pass() {
+      setEntry('');
+      update({ strikes: board.strikes + 1, team: 1 - board.team, message: 'Turn passes to ' + teams[1 - board.team] + '.' });
+    }
+
+    function correct() {
+      setEntry('');
+      update({ settled: true, scores: award(board.team, points), message: teams[board.team] + ' earns ' + points + (points === 1 ? ' point.' : ' points.') });
+    }
+
+    return <>
+      <p className="np-label">{teams[board.team]} · {points} {points === 1 ? 'point' : 'points'} available</p>
+      <h2>{board.settled ? password : 'Guess the password'}</h2>
+      <div className="np-actions" aria-label="Clues">
+        {clues.map(clue => <span className="np-tile" key={clue}>{clue}</span>)}
+        {!clues.length && !board.settled && <p>Waiting for the first clue.</p>}
+      </div>
+      {!display && !board.settled && <div className="np-controls">
+        <p><strong>Host and clue giver only:</strong> {password}</p>
+        <p>Post one word as a clue, then let the team guess out loud. Pass after a miss.</p>
+        <form className="np-actions" onSubmit={giveClue}>
+          <label>One-word clue <input value={entry} required maxLength={32} onChange={event => setEntry(event.target.value)} /></label>
+          <button className="np-button">Post clue</button>
+        </form>
+        <div className="np-actions">
+          <button className="np-button" disabled={!clues.length} onClick={correct}>Correct guess</button>
+          <button className="np-button np-secondary" onClick={pass}>Pass turn</button>
+          <button className="np-button np-secondary" onClick={() => update({ settled: true, message: 'Password revealed. No points awarded.' })}>Reveal and end round</button>
+        </div>
+      </div>}
+    </>;
+  }
+
+  const games: Record<Game, () => JSX.Element> = { price: renderPrice, feud: renderFeud, wheel: renderWheel, deal: renderDeal, password: renderPassword };
   return <main className={'np-layout' + (display ? ' np-broadcast' : '')}>
     {!display && <nav className="np-actions"><Link to="/">← Lineup</Link><a href={'/games/' + show.id + '?display=1'} target="_blank" rel="noreferrer">Open display ↗</a></nav>}
     <header className="np-panel np-hero"><p className="np-label">North Pole dispatch · {show.id === 'deal' ? 'Game ' : 'Round '}{board.round + 1}</p><h1>{show.icon} {show.title}</h1><p>{show.description}</p></header>

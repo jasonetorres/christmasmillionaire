@@ -7,7 +7,7 @@ export default function Welcome() {
       <header className="np-hero np-panel">
         <p className="np-label">North Pole dispatch · Holiday broadcast</p>
         <h1>Christmas Game Night</h1>
-        <p>Five games. One every hour.</p>
+        <p>Six games. One every hour.</p>
       </header>
       <div className="np-lineup">
         {shows.map((show, index) => (
@@ -19,7 +19,7 @@ export default function Welcome() {
         ))}
         <article className="np-panel np-card np-finale">
           <span className="np-icon" aria-hidden="true">⭐</span>
-          <div><p className="np-label">Hour 5 · Finale</p><h2>Who Wants to Be a Christmas Millionaire?</h2><p>Climb the money ladder with three lifelines.</p></div>
+          <div><p className="np-label">Hour {shows.length + 1} · Finale</p><h2>Who Wants to Be a Christmas Millionaire?</h2><p>Climb the money ladder with three lifelines.</p></div>
           <div className="np-actions"><Link className="np-button" to="/hostjt">Host</Link><Link className="np-button np-secondary" to="/displayurl">Display</Link><Link className="np-button np-secondary" to="/vote">Vote</Link></div>
         </article>
       </div>
