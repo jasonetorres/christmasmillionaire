@@ -561,3 +561,21 @@
   .stream-reaction-float,.stream-live-message { animation:none; }
   .stream-audience-grid button { transition:none; }
 }
+
+
+/* Tight top alignment for the stream game and audience rail. */
+.stream-display-game {
+  inset: 4% calc(var(--stream-chat-width) + 4.2%) 12% 2.3%;
+}
+.stream-chat-rail {
+  top: 4%;
+  bottom: 12%;
+}
+@media (max-width: 900px) {
+  .stream-display-game {
+    inset: 4% calc(var(--stream-chat-width) + 4%) 12% 2.3%;
+  }
+}
+@media (max-width: 620px) {
+  .stream-display-game { inset: 4% 2.3% 14%; }
+}
