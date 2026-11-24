@@ -19,7 +19,7 @@ export async function POST(request) {
       value: body.value,
       actorKey: body.actorKey,
     });
-    return json({ event }, { status: 201 });
+    return json({ event }, 201);
   } catch (error) {
     return errorResponse(error);
   }
