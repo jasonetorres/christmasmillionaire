@@ -204,12 +204,13 @@ function ProducerRoom({ room, update }: { room: RoomState; update: (changes: Par
 function StreamDisplay({ room }: { room: RoomState }) {
   const clock = useClock(room.liveStartedAt);
   const active = lineup.find(item => item.id === room.gameId) ?? lineup[0];
+  const activeIndex = Math.max(0, lineup.findIndex(item => item.id === active.id));
   const percent = Math.max(0, Math.min(100, room.goal ? room.raised / room.goal * 100 : 0));
 
   return <main className={"stream-display stream-display-" + room.gameId}>
     <header className="stream-display-header">
       <div className="stream-display-brand"><span>✦</span><strong>CHRISTMAS GAME NIGHT</strong></div>
-      <div className="stream-display-segment"><small>NOW PLAYING</small><strong>{active.name}</strong></div>
+      <div className="stream-display-segment"><small>{room.live ? 'ON AIR' : 'UP NEXT'} · SEGMENT {String(activeIndex + 1).padStart(2, '0')} / 06</small><strong>{active.time} EASTERN</strong></div>
       <div className="stream-display-clock"><small>{room.live ? 'LIVE · ' + clock.liveClock : 'DEC 18 · 2–8 PM ET'}</small><strong>{clock.clock}</strong></div>
     </header>
 
