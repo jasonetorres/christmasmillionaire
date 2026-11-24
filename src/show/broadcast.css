@@ -546,3 +546,41 @@
 @media (prefers-reduced-motion: reduce) {
   .broadcast-snow { animation: none; }
 }
+
+
+/* Match the Find Santa broadcast package across all game screens. */
+.broadcast {
+  --stage-ink: #254f55;
+  --stage-paper: #fffbed;
+  --stage-deep: #e6f6f4;
+  isolation: isolate;
+  color: var(--stage-ink);
+  background:
+    radial-gradient(circle at 20px 33px, #ffffffa8 0 2px, transparent 3px) 0 0 / 109px 89px,
+    radial-gradient(circle at 24px 18px, #ffffff80 0 1px, transparent 2px) 0 0 / 63px 47px,
+    radial-gradient(ellipse at 85% 8%, #fff8d5 0, transparent 25%),
+    linear-gradient(180deg, #8fd3f0 0%, #bce8ed 52%, #e6f6f4 100%);
+}
+.broadcast-header { border-bottom-color: #254f552e; }
+.broadcast-brand { color: #26785f; }
+.broadcast-detail {
+  color: #254f55;
+  border-color: #c6dbcc;
+  background: #fffbed;
+}
+.broadcast-scores > div {
+  color: #254f55;
+  border-color: #c6dbcc;
+  background: #fffbed;
+  box-shadow: 0 5px 0 #254f5515, 0 10px 24px #254f5510;
+}
+.broadcast-scores strong { color: #bd373b; }
+.broadcast-board {
+  box-shadow: inset 0 0 0 6px #81afbc20, 0 18px 42px #254f5524;
+}
+.broadcast-status {
+  color: #254f55;
+  border-color: #c6dbcc;
+  background: #fffbed;
+  box-shadow: 0 5px 0 #254f5515, 0 10px 24px #254f5510;
+}
