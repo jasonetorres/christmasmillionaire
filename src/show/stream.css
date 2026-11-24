@@ -135,3 +135,125 @@
   .stream-sponsor-ticker > strong { display:none; }
 }
 @media(prefers-reduced-motion:reduce) { .stream-ticker-track > div,.studio-live.is-live i { animation:none; } }
+
+
+/* Keep the stream control room and broadcast frame in the Find Santa game palette. */
+:root {
+  --studio-ink: #254f55;
+  --studio-deep: #254f55;
+  --studio-sky: #8fd3f0;
+  --studio-card: #fffbed;
+  --studio-coral: #b53336;
+  --studio-gold: #fbd475;
+  --studio-mint: #d9efc8;
+  --studio-line: #c6dbcc;
+}
+
+.studio-shell {
+  background:
+    radial-gradient(circle at 20px 33px, #ffffffa8 0 2px, transparent 3px) 0 0 / 109px 89px,
+    radial-gradient(circle at 24px 18px, #ffffff80 0 1px, transparent 2px) 0 0 / 63px 47px,
+    radial-gradient(ellipse at 85% 8%, #fff8d5 0, transparent 25%),
+    linear-gradient(#8fd3f0, #e6f6f4);
+  background-attachment: fixed;
+}
+
+.studio-topbar {
+  background: #fffbeded;
+  border-bottom-color: #c6dbcc;
+}
+
+.studio-welcome,
+.studio-stage-card,
+.studio-lineup-card,
+.studio-side-card {
+  background: #fffbed;
+  border-color: #c6dbcc;
+  box-shadow: 0 5px 0 #387f8529, 0 12px 36px #295c6a19;
+}
+
+.studio-countdown {
+  color: #254f55;
+  border: 1px solid #e4d28b;
+  background: radial-gradient(ellipse at top right, #d9efc8 0, transparent 52%), linear-gradient(135deg, #fffbed, #fce6aa);
+  box-shadow: 0 4px 0 #dfc97866;
+}
+.studio-countdown span,.studio-countdown small { color: #3c6b60; }
+.studio-countdown strong { color: #254f55; }
+
+.studio-lineup-item { background: #edf6e7; }
+.studio-lineup-item:hover { background: #d9efc8; }
+.studio-lineup-item.is-selected {
+  background: #fff0d1;
+  border-color: #eccb7b;
+  box-shadow: inset 4px 0 #b53336, 0 3px 0 #e8d7a2;
+}
+
+.stream-display {
+  --stream-accent: #b53336;
+  position: relative;
+  color: #254f55;
+  background:
+    radial-gradient(circle at 20px 33px, #ffffffa8 0 2px, transparent 3px) 0 0 / 109px 89px,
+    radial-gradient(circle at 24px 18px, #ffffff80 0 1px, transparent 2px) 0 0 / 63px 47px,
+    linear-gradient(#8fd3f0, #e6f6f4);
+}
+.stream-display-price { --stream-accent: #428267; }
+.stream-display-feud { --stream-accent: #4385aa; }
+.stream-display-wheel { --stream-accent: #b88629; }
+.stream-display-deal { --stream-accent: #b53336; }
+.stream-display-password { --stream-accent: #7655a4; }
+.stream-display-millionaire { --stream-accent: #b88629; }
+
+.stream-display-header,
+.stream-display-goal {
+  color: #254f55;
+  border: 1px solid #c6dbcc;
+  background: #fffbeded;
+  box-shadow: 0 5px 0 #387f8529, 0 12px 36px #295c6a19;
+  backdrop-filter: blur(14px);
+}
+.stream-display-brand span { color: var(--stream-accent); text-shadow: none; }
+.stream-display-segment small,.stream-display-clock small,.stream-goal-copy small,.stream-goal-percent small { color: #3c6b60; }
+.stream-display-clock strong,.stream-display-segment strong,.stream-goal-copy strong,.stream-goal-percent { color: #254f55; }
+.stream-display-goal { border-radius: 18px; }
+.stream-goal-bar { background: #d9efc8; }
+.stream-goal-bar span,.studio-progress span,.stream-sponsor-ticker .stream-ticker-track i {
+  background: linear-gradient(90deg, var(--stream-accent), #f0aa65, #fbd475);
+}
+.stream-standby {
+  color: #254f55;
+  border: 1px solid #c6dbcc;
+  background: radial-gradient(ellipse at 78% 4%, #d9efc8 0, transparent 38%), linear-gradient(145deg, #fffbed, #fce6aa);
+  box-shadow: 0 8px 0 #387f8529, 0 24px 60px #295c6a25;
+}
+.stream-standby > span { color: #f1c65e; text-shadow: 0 0 42px #f1c65e88; }
+.stream-standby p,.stream-standby > small { color: #3c6b60; }
+.stream-standby h1 { color: #254f55; }
+.stream-standby-rule { background: linear-gradient(90deg, var(--stream-accent), #f2c865); }
+.stream-standby > strong { color: var(--stream-accent); }
+
+.stream-lower-third {
+  border-color: #c6dbcc;
+  background: linear-gradient(100deg, #fffbed, #fff);
+  color: #254f55;
+  box-shadow: 0 5px 0 #387f8529, 0 12px 36px #295c6a19;
+}
+.stream-lower-icon { background: var(--stream-accent); }
+.stream-lower-third small { color: #3c6b60; }
+.stream-lower-accent { background: var(--stream-accent); }
+
+.stream-sponsor-ticker {
+  color: #254f55;
+  border-top: 1px solid #c6dbcc;
+  background: #fffbedf2;
+  box-shadow: 0 -5px 24px #295c6a18;
+}
+.stream-sponsor-ticker > strong { color: var(--stream-accent); }
+.stream-ticker-track span { color: #254f55; }
+.stream-ticker-track i { color: #b88629; }
+.stream-tiltify-overlay { z-index: 5; }
+
+@media (prefers-reduced-motion: reduce) {
+  .stream-ticker-track > div { animation: none; }
+}
