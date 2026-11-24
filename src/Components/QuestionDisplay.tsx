@@ -44,27 +44,27 @@ export function QuestionDisplay({
 
     if (showResult) {
       if (letter === question.correct_answer) {
-        return 'bg-green-600 text-white border-green-400 shadow-lg shadow-green-500/50';
+        return 'bg-[#2d694a] text-white border-green-400 shadow-lg shadow-green-500/50';
       }
       if (letter === selectedAnswer && selectedAnswer !== question.correct_answer) {
-        return 'bg-red-600 text-white border-red-400 shadow-lg shadow-red-500/50';
+        return 'bg-[#b53336] text-white border-red-400 shadow-lg shadow-red-500/50';
       }
     }
 
     if (selectedAnswer === letter) {
-      return 'bg-yellow-500 text-black border-yellow-400 scale-105 shadow-lg shadow-yellow-500/50';
+      return 'bg-[#fbd475] text-black border-yellow-400 scale-105 shadow-lg shadow-yellow-500/50';
     }
 
-    return 'bg-blue-900 text-white border-blue-600 hover:bg-blue-800 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30';
+    return 'bg-[#e5f3df] np-ink border-[#a8c6b8] hover:bg-[#d9efc8] hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30';
   };
 
   return (
     <div className={`transition-opacity duration-500 ${displayQuestion ? 'opacity-100' : 'opacity-0'}`}>
-      <div className="bg-gradient-to-b from-blue-950 to-blue-900 p-8 rounded-lg shadow-2xl border-2 border-blue-600 mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-white mb-2">
+      <div className="np-panel p-8 rounded-lg shadow-2xl border-2 border-[#a8c6b8] mb-8">
+        <h2 className="text-2xl md:text-3xl font-bold text-center np-ink mb-2">
           {question.question}
         </h2>
-        <p className="text-center text-blue-300 text-sm">{question.category}</p>
+        <p className="text-center np-muted text-sm">{question.category}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -75,7 +75,7 @@ export function QuestionDisplay({
             disabled={disabled || removedAnswers.has(letter)}
             className={`${getAnswerStyle(letter)} p-6 rounded-lg border-2 transition-all duration-300 text-left text-lg font-semibold disabled:cursor-not-allowed`}
           >
-            <span className="inline-block w-8 h-8 rounded-full bg-white/20 text-center leading-8 mr-3">
+            <span className="inline-block w-8 h-8 rounded-full bg-black/10 text-center leading-8 mr-3">
               {letter}
             </span>
             {text}

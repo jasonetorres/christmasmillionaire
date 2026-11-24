@@ -23,7 +23,7 @@ const MONEY_LADDER = [
 
 export function MoneyLadder({ currentLevel, isActive }: MoneyLadderProps) {
   return (
-    <div className="bg-gradient-to-b from-blue-950 to-blue-900 p-6 rounded-lg shadow-2xl border-2 border-yellow-600">
+    <div className="np-panel p-6 rounded-lg shadow-2xl border-2 border-[#a8c6b8]">
       <div className="space-y-1">
         {MONEY_LADDER.map(({ level, amount, milestone }) => {
           const isCurrent = level === currentLevel;
@@ -35,12 +35,12 @@ export function MoneyLadder({ currentLevel, isActive }: MoneyLadderProps) {
               className={`
                 px-4 py-2 rounded-lg text-center font-bold transition-all duration-300
                 ${isCurrent && isActive
-                  ? 'bg-yellow-500 text-black scale-105 shadow-lg shadow-yellow-500/50'
+                  ? 'bg-[#fbd475] text-black scale-105 shadow-lg shadow-yellow-500/50'
                   : isPassed
                   ? 'bg-gray-700 text-gray-400'
                   : milestone
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-blue-800 text-blue-200'
+                  ? 'bg-orange-600 np-ink'
+                  : 'bg-[#e5f3df] np-ink'
                 }
                 ${milestone && !isPassed && !isCurrent ? 'border-2 border-orange-400' : ''}
               `}

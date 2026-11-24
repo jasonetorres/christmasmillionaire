@@ -1,9 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
-@theme {
-    --font-sans: ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+:root {
+  --np-ink: #254f55;
+  --np-cream: #fffbed;
+  --np-sky: #8fd3f0;
+  --np-coral: #b53336;
+  --np-gold: #fbd475;
+  --np-mint: #d9efc8;
+  --np-line: #c6dbcc;
+  font-family: 'JetBrains Mono', monospace;
+  background: var(--np-sky);
+  color: var(--np-ink);
 }
+
+body {
+  margin: 0;
+  min-width: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20px 33px, #ffffffa8 0 2px, transparent 3px) 0 0 / 109px 89px,
+    radial-gradient(circle at 24px 18px, #ffffff80 0 1px, transparent 2px) 0 0 / 63px 47px,
+    linear-gradient(#8fd3f0, #e6f6f4);
+  background-attachment: fixed;
+}
+
+:focus-visible { outline: 3px solid #205d70; outline-offset: 4px; }
+button:not(:disabled), summary { cursor: pointer; }
+.np-layout { width: min(1200px, 100%); min-height: 100vh; padding: clamp(1rem, 4vw, 3rem); margin-inline: auto; display: grid; gap: 1.2rem; align-content: start; }
+.np-layout nav a { color: var(--np-ink); font-weight: 700; text-decoration: underline; }
+.np-panel { border-radius: 28px; background: var(--np-cream); border: 1px solid var(--np-line); box-shadow: 0 5px 0 #387f8529, 0 12px 36px #295c6a19; }
+.np-hero { padding: clamp(1.35rem, 5vw, 4rem); background: radial-gradient(ellipse at top right, #d9efc8 0%, transparent 46%), var(--np-cream); }
+.np-hero h1 { font-size: clamp(1.8rem, 5vw, 4rem); font-weight: 800; letter-spacing: -.07em; line-height: 1.08; margin: .5rem 0 .9rem; overflow-wrap: anywhere; }
+.np-label { color: #3c6b60; font-size: .8rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+.np-lineup { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.np-card { padding: clamp(1rem, 3vw, 1.8rem); display: grid; justify-items: start; gap: 1rem; align-content: start; }
+.np-icon { display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 16px; background: var(--np-mint); font-size: 1.5rem; }
+.np-card h2, .np-board h2 { font-size: clamp(1.25rem, 3vw, 2.1rem); font-weight: 800; letter-spacing: -.05em; }
+.np-card h2 + p { margin-top: .45rem; }
+.np-finale { grid-column: 1 / -1; background: linear-gradient(100deg, var(--np-cream), #fce6aa); }
+.np-button { display: inline-flex; min-height: 44px; align-items: center; justify-content: center; text-align: center; padding: .65rem 1rem; border-radius: 15px; border: 1px solid transparent; background: var(--np-coral); box-shadow: 0 3px 0 #782b35; color: white; font-weight: 700; text-decoration: none; }
+.np-button:hover:not(:disabled) { filter: brightness(1.1); }
+.np-button:active:not(:disabled) { translate: 0 2px; }
+.np-secondary { background: var(--np-mint); color: var(--np-ink); box-shadow: 0 3px 0 #a6c6a4; }
+.np-button:disabled { opacity: .55; }
+.np-actions { display: flex; gap: .75rem; flex-wrap: wrap; align-items: end; }
+.np-board { padding: clamp(1rem, 3vw, 2rem); display: grid; gap: 1rem; }
+.np-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.np-tile { background: var(--np-cream); border: 1px solid var(--np-line); border-radius: 17px; padding: .8rem 1rem; display: grid; }
+.np-board .np-tile { background: #edf6e7; }
+.np-tile strong { font-size: clamp(1.35rem, 4vw, 2.35rem); }
+.np-controls, .np-round-actions { border-top: 1px solid var(--np-line); padding-top: 1rem; }
+.np-controls { display: grid; gap: .75rem; justify-items: start; }
+.np-board input, .np-legacy input { background: white; border: 1px solid #659084; color: #254f55; border-radius: 12px; padding: .65rem .8rem; width: min(100%, 28rem); }
+.np-board label { display: grid; gap: .35rem; }
+.np-result { font-size: clamp(1.25rem, 4vw, 2.3rem); font-weight: 800; }
+.np-status:empty { display: none; }
+.np-survey { display: grid; gap: .5rem; list-style: none; padding: 0; }
+.np-survey li { padding: .65rem 1rem; display: grid; grid-template-columns: 2ch 1fr 3ch; gap: .75rem; background: #edf6e7; border-radius: 13px; }
+.np-gifts { grid-template-columns: repeat(auto-fit, minmax(min(110px, 100%), 1fr)); }
+.np-held { border-color: #946715; background: var(--np-gold); }
+.np-values { font-weight: 700; }
+.np-crossed { text-decoration: line-through; opacity: .55; }
+.np-wheel-wrap { display: grid; position: relative; justify-self: center; }
+.np-wheel-wrap > span { position: absolute; z-index: 1; left: 50%; top: -14px; translate: -50%; font-size: 1.3rem; color: #782b35; }
+.np-wheel { width: 224px; aspect-ratio: 1; position: relative; border-radius: 50%; border: 5px solid var(--np-ink); background: conic-gradient(#8fd3f0 0 45deg, #fbd475 45deg 90deg, #d9efc8 90deg 135deg, #fac2bd 135deg 180deg, #8fd3f0 180deg 225deg, #fbd475 225deg 270deg, #fac2bd 270deg 315deg, #d9efc8 315deg); transition: transform 1.15s cubic-bezier(.12,.65,.17,1); }
+.np-wheel span { position: absolute; top: 50%; left: 50%; font-size: .65rem; font-weight: 800; }
+.np-puzzle { display: flex; gap: .7rem; flex-wrap: wrap; justify-content: center; }
+.np-puzzle > div { display: flex; flex-wrap: wrap; gap: .16rem; max-width: 100%; }
+.np-letter { display: grid; place-items: center; width: clamp(1.25rem, 4vw, 2.6rem); min-height: 2rem; border-radius: 5px; background: var(--np-mint); border-bottom: 3px solid #9bbb99; font-weight: 800; }
+.np-keyboard .np-button { min-width: 44px; padding: .4rem; }
+.np-broadcast { font-size: clamp(1rem, 1.7vw, 1.35rem); }
+.np-broadcast .np-button:disabled { opacity: 1; }
+
+.np-legacy { min-height: 100vh; }
+.np-legacy nav { background: var(--np-cream); padding: .6rem clamp(.75rem, 4vw, 2rem); }
+.np-legacy nav a { text-decoration: underline; font-size: .85rem; font-weight: 700; }
+.np-legacy .np-stage { background: transparent; color: var(--np-ink); }
+.np-legacy .np-stage .np-panel { color: var(--np-ink); }
+.np-legacy .np-stage .np-panel button { border-radius: 15px; }
+.np-legacy .np-stage .np-muted { color: #3c6b60; }
+.np-legacy .np-stage .np-ink { color: var(--np-ink); }
+
+@media (max-width: 660px) {
+  .np-lineup { grid-template-columns: 1fr; }
+  .np-legacy .np-stage { padding-inline: clamp(.65rem, 3vw, 1.2rem); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .np-wheel { transition: none; }
+  .np-legacy .animate-confetti, .np-legacy .animate-snowfall, .np-legacy .animate-twinkle { animation: none; display: none; }
+}
+
 
 @keyframes confetti {
     0% {

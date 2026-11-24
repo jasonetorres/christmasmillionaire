@@ -146,7 +146,7 @@ export default function Santa() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 flex items-center justify-center p-4">
+    <div className="min-h-screen np-stage flex items-center justify-center p-4">
       <div className="w-[390px] bg-black rounded-[55px] shadow-2xl overflow-hidden relative">
         <div className="bg-black px-8 pt-3 pb-2 relative">
           <div className="flex items-center justify-between text-white text-sm font-semibold">

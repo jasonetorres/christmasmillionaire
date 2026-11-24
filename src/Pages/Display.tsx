@@ -36,7 +36,7 @@ const Celebration = ({ isWin = false }: { isWin?: boolean }) => {
       ))}
       {isWin && (
         <div className="absolute inset-0 flex items-center justify-center animate-pulse">
-          <div className="text-9xl font-bold text-yellow-300 drop-shadow-2xl">
+          <div className="text-9xl font-bold np-ink drop-shadow-2xl">
             🎄 WINNER! 🎄
           </div>
         </div>
@@ -56,23 +56,23 @@ export default function Display() {
 
   if (error && !game) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 flex items-center justify-center p-8">
-        <p className="text-2xl text-red-100 text-center max-w-2xl">{error}</p>
+      <div className="min-h-screen np-stage flex items-center justify-center p-8">
+        <p className="text-2xl text-[#85252e] text-center max-w-2xl">{error}</p>
       </div>
     );
   }
 
   if (!game || !question) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 flex items-center justify-center relative overflow-hidden">
+      <div className="min-h-screen np-stage flex items-center justify-center relative overflow-hidden">
         <div className="text-center relative z-10">
           <div className="mb-6">
             <span className="text-7xl animate-twinkle inline-block" style={{ animationDuration: '2s' }}>⭐</span>
           </div>
-          <h1 className="text-6xl font-bold text-yellow-300 mb-4 drop-shadow-lg">
-            Who Wants to Be a Christmasaire? 🎄
+          <h1 className="text-6xl font-bold np-ink mb-4 ">
+            Who Wants to Be a Christmas Millionaire? 🎄
           </h1>
-          <p className="text-white text-2xl mt-8">Waiting for game to start...</p>
+          <p className="np-ink text-2xl mt-8">Waiting for game to start...</p>
         </div>
       </div>
     );
@@ -84,7 +84,7 @@ export default function Display() {
   const isWrongAnswer = game.show_correct && game.selected_answer !== question.correct_answer;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 p-8 relative overflow-hidden">
+    <div className="min-h-screen np-stage p-8 relative overflow-hidden">
       <div className="relative z-10">
         <SoundSystemController
           gameStatus={game.game_status}
@@ -99,14 +99,14 @@ export default function Display() {
 
         {isGameOver && isWrongAnswer && (
           <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm">
-            <div className="bg-gradient-to-br from-red-900 to-red-950 border-4 border-yellow-400 rounded-2xl p-12 max-w-2xl mx-4 text-center shadow-2xl">
-              <h2 className="text-5xl font-bold text-white mb-6">GAME OVER 🎄</h2>
-              <p className="text-2xl text-gray-200 mb-8">Unfortunately, that was the wrong answer.</p>
-              <div className="bg-black/40 rounded-xl p-6 mb-6">
-                <p className="text-xl text-gray-300 mb-2">You're taking home</p>
-                <p className="text-6xl font-bold text-yellow-300">{game.total_winnings}</p>
+            <div className="np-panel p-12 max-w-2xl mx-4 text-center shadow-2xl">
+              <h2 className="text-5xl font-bold np-ink mb-6">GAME OVER 🎄</h2>
+              <p className="text-2xl np-ink mb-8">Unfortunately, that was the wrong answer.</p>
+              <div className="bg-[#d9efc8] rounded-xl p-6 mb-6">
+                <p className="text-xl np-ink mb-2">You're taking home</p>
+                <p className="text-6xl font-bold np-ink">{game.total_winnings}</p>
               </div>
-              <p className="text-xl text-gray-300">Thank you for playing!</p>
+              <p className="text-xl np-ink">Thank you for playing!</p>
             </div>
           </div>
         )}
@@ -115,8 +115,8 @@ export default function Display() {
           <div className="lg:col-span-3">
             <div className="mb-4 flex items-center justify-center gap-4">
               <span className="text-4xl animate-twinkle" style={{ animationDuration: '2s' }}>⭐</span>
-              <h1 className="text-4xl font-bold text-yellow-300 text-center drop-shadow-lg">
-                Who Wants to Be a Christmasaire? 🎄
+              <h1 className="text-4xl font-bold np-ink text-center ">
+                Who Wants to Be a Christmas Millionaire? 🎄
               </h1>
               <span className="text-4xl animate-twinkle" style={{ animationDuration: '2.5s' }}>⭐</span>
             </div>
@@ -131,19 +131,19 @@ export default function Display() {
             />
 
             {game.active_lifeline === 'audience' && (
-              <div className="mt-8 bg-red-900/50 border-2 border-yellow-400 p-6 rounded-lg">
-                <h3 className="text-2xl font-bold text-white text-center mb-6">👥 Ask the Audience Results</h3>
+              <div className="mt-8 np-panel border-2 border-yellow-400 p-6 rounded-lg">
+                <h3 className="text-2xl font-bold np-ink text-center mb-6">👥 Ask the Audience Results</h3>
                 <div className="grid grid-cols-4 gap-4">
                   {(['A', 'B', 'C', 'D'] as const).map((answer) => (
                     <div key={answer} className="text-center">
-                      <div className="text-3xl font-bold text-yellow-300 mb-2">{percent(votes[answer])}%</div>
+                      <div className="text-3xl font-bold np-ink mb-2">{percent(votes[answer])}%</div>
                       <div className="bg-green-800 h-32 relative rounded-lg overflow-hidden border-2 border-yellow-400">
                         <div
                           className="absolute bottom-0 w-full bg-gradient-to-t from-yellow-400 to-yellow-300 transition-all duration-500"
                           style={{ height: `${percent(votes[answer])}%` }}
                         />
                       </div>
-                      <div className="text-xl font-bold text-white mt-2">{answer}</div>
+                      <div className="text-xl font-bold np-ink mt-2">{answer}</div>
                     </div>
                   ))}
                 </div>
@@ -153,12 +153,12 @@ export default function Display() {
 
           <div className="lg:col-span-1">
             <MoneyLadder currentLevel={game.current_level} isActive={game.game_status === 'question_shown'} />
-            <div className="mt-6 bg-white/10 backdrop-blur-sm border-2 border-yellow-400 rounded-lg p-4">
+            <div className="mt-6 np-panel p-4">
               <div className="bg-white p-3 rounded-lg flex flex-col items-center justify-center">
                 <QRCodeSVG value={voteUrl} size={160} />
                 <p className="text-xs font-bold text-gray-800 mt-2">Scan to Join</p>
               </div>
-              <p className="text-white text-sm text-center mt-3 font-semibold">Audience Reactions</p>
+              <p className="np-ink text-sm text-center mt-3 font-semibold">Audience Reactions</p>
             </div>
           </div>
         </div>

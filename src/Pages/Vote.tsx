@@ -30,33 +30,33 @@ export default function Vote() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-900 via-green-900 to-red-950 p-8 flex items-center justify-center">
+    <div className="min-h-screen np-stage p-8 flex items-center justify-center">
       <div className="max-w-2xl w-full">
         <div className="text-center mb-8">
           <span className="text-5xl animate-twinkle inline-block" style={{ animationDuration: '2s' }}>⭐</span>
-          <h1 className="text-4xl font-bold text-yellow-300 text-center mb-2 drop-shadow-lg">
-            Who Wants to Be a Christmasaire? 🎄
+          <h1 className="text-4xl font-bold np-ink text-center mb-2 ">
+            Who Wants to Be a Christmas Millionaire? 🎄
           </h1>
         </div>
 
         {(error || banner) && (
-          <p className="text-red-200 text-center mb-4">{banner || error}</p>
+          <p className="text-[#85252e] text-center mb-4">{banner || error}</p>
         )}
 
         {canVote ? (
           <div className="mb-14">
-            <h2 className="text-2xl font-bold text-white text-center mb-4">Cast Your Vote</h2>
+            <h2 className="text-2xl font-bold np-ink text-center mb-4">Cast Your Vote</h2>
             <div className="grid grid-cols-2 gap-4 gap-y-12">
               {(['A', 'B', 'C', 'D'] as const).map((answer) => (
                 <div key={answer} className="relative">
                   <button
                     onClick={() => submitVote(answer)}
-                    className="w-full bg-gradient-to-br from-green-700 to-green-800 text-white p-12 rounded-xl text-6xl font-bold hover:from-green-800 hover:to-green-900 transition-all shadow-2xl hover:scale-105 border-4 border-yellow-400"
+                    className="w-full bg-gradient-to-br from-green-700 to-green-800 np-ink p-12 rounded-xl text-6xl font-bold hover:from-green-800 hover:to-green-900 transition-all shadow-2xl hover:scale-105 border-4 border-yellow-400"
                   >
                     {answer}
                   </button>
                   <div className="absolute -bottom-8 left-0 right-0 text-center">
-                    <span className="text-yellow-300 text-xl font-bold">{votes[answer]} votes</span>
+                    <span className="np-ink text-xl font-bold">{votes[answer]} votes</span>
                   </div>
                 </div>
               ))}
@@ -65,16 +65,16 @@ export default function Vote() {
         ) : voted ? (
           <div className="mb-6">
             <div className="text-center mb-6">
-              <p className="text-white text-2xl mb-2">Thanks for voting! 🎄</p>
+              <p className="np-ink text-2xl mb-2">Thanks for voting! 🎄</p>
               <span className="text-6xl animate-twinkle inline-block" style={{ animationDuration: '2s' }}>⭐</span>
             </div>
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border-2 border-yellow-400">
-              <h3 className="text-xl font-bold text-white text-center mb-4">Current Vote Count</h3>
+            <div className="np-panel p-6">
+              <h3 className="text-xl font-bold np-ink text-center mb-4">Current Vote Count</h3>
               <div className="grid grid-cols-2 gap-4">
                 {(['A', 'B', 'C', 'D'] as const).map((answer) => (
                   <div key={answer} className="bg-gradient-to-br from-red-800 to-red-900 p-4 rounded-lg border-2 border-yellow-400 text-center">
-                    <div className="text-4xl font-bold text-yellow-300 mb-1">{answer}</div>
-                    <div className="text-2xl font-bold text-white">{votes[answer]}</div>
+                    <div className="text-4xl font-bold np-ink mb-1">{answer}</div>
+                    <div className="text-2xl font-bold np-ink">{votes[answer]}</div>
                   </div>
                 ))}
               </div>
@@ -82,7 +82,7 @@ export default function Vote() {
           </div>
         ) : (
           <div className="mb-6 text-center">
-            <p className="text-white text-xl mb-2">
+            <p className="np-ink text-xl mb-2">
               {!game ? 'No active game 🎄' :
                 game.active_lifeline !== 'audience' ? 'Watching the game...' :
                   'Waiting for question... 🎄'}
@@ -90,8 +90,8 @@ export default function Vote() {
           </div>
         )}
 
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border-2 border-yellow-400">
-          <p className="text-white text-center mb-3 font-semibold">Send a Reaction 🎄</p>
+        <div className="np-panel p-4">
+          <p className="np-ink text-center mb-3 font-semibold">Send a Reaction 🎄</p>
           <div className="flex justify-center gap-3 flex-wrap">
             {REACTIONS.map((emoji) => (
               <button
