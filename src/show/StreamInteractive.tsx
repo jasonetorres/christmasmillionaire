@@ -4,6 +4,7 @@ import { getHostCode, setHostCode } from '../lib/api';
 
 type EventType = 'emoji' | 'message' | 'sound';
 type StreamEvent = { id: string; event_type: EventType; value: string; created_at: string };
+const LOCAL_EVENT_KEY = 'north-pole-stream-local-event-v1';
 const EMOJI = ['👏', '😮', '🤔', '😱', '🎉', '❤️', '🔥', '👍', '🎄', '🎅', '⛄', '🎁', '⭐', '🎊', '🤶', '🦌'];
 const SOUNDS = [
   { id: 'bell', label: 'Jingle bell' },
@@ -59,7 +60,23 @@ export function StreamInteractivePanel() {
       setNotice(type === 'message' ? 'Message is on its way to the display.' : 'Sent to the stream display.');
       if (type === 'message') setMessage('');
     } catch (error) {
-      setNotice(error instanceof Error ? error.message : 'Could not reach the stream display.');
+      if (type === 'message' || type === 'sound') {
+        const localEvent: StreamEvent = {
+          id: typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : String(Date.now()),
+          event_type: type,
+          value,
+          created_at: new Date().toISOString(),
+        };
+        try {
+          localStorage.setItem(LOCAL_EVENT_KEY, JSON.stringify(localEvent));
+          if (type === 'message') setMessage('');
+          setNotice('Sent to this browser’s stream display. Connect the stream database to enable reactions from viewers’ phones.');
+        } catch {
+          setNotice(error instanceof Error ? error.message : 'Could not reach the stream display.');
+        }
+      } else {
+        setNotice(error instanceof Error ? error.message : 'Could not reach the stream display.');
+      }
     } finally {
       setSending(false);
     }
@@ -127,6 +144,24 @@ export function StreamBroadcastEffects() {
 
   useEffect(() => {
     let mounted = true;
+    const handleEvent = (event: StreamEvent) => {
+      if (seen.current.has(event.id)) return;
+      seen.current.add(event.id);
+      if (event.event_type === 'emoji') {
+        setEvents(current => [...current, event].slice(-24));
+        window.setTimeout(() => setEvents(current => current.filter(item => item.id !== event.id)), 4200);
+      }
+      if (event.event_type === 'message') {
+        setMessage(event);
+        window.setTimeout(() => setMessage(current => current?.id === event.id ? null : current), 7000);
+      }
+      if (event.event_type === 'sound' && context.current) playSound(context.current, event.value);
+    };
+    const receiveLocal = (event: StorageEvent) => {
+      if (event.key !== LOCAL_EVENT_KEY || !event.newValue) return;
+      try { handleEvent(JSON.parse(event.newValue) as StreamEvent); } catch { /* ignore malformed local event */ }
+    };
+    window.addEventListener('storage', receiveLocal);
     const poll = async () => {
       try {
         const response = await fetch('/api/stream-events', { cache: 'no-store' });
@@ -140,18 +175,7 @@ export function StreamBroadcastEffects() {
           return;
         }
         const fresh = (body.events || []).filter(event => !seen.current.has(event.id));
-        for (const event of fresh) {
-          seen.current.add(event.id);
-          if (event.event_type === 'emoji') {
-            setEvents(current => [...current, event].slice(-24));
-            window.setTimeout(() => setEvents(current => current.filter(item => item.id !== event.id)), 4200);
-          }
-          if (event.event_type === 'message') {
-            setMessage(event);
-            window.setTimeout(() => setMessage(current => current?.id === event.id ? null : current), 7000);
-          }
-          if (event.event_type === 'sound' && context.current) playSound(context.current, event.value);
-        }
+        for (const event of fresh) handleEvent(event);
         if (seen.current.size > 300) seen.current = new Set(fresh.map(event => event.id));
       } catch {
         if (mounted) setLoadError(true);
@@ -159,7 +183,7 @@ export function StreamBroadcastEffects() {
     };
     void poll();
     const timer = window.setInterval(poll, 1100);
-    return () => { mounted = false; window.clearInterval(timer); };
+    return () => { mounted = false; window.clearInterval(timer); window.removeEventListener('storage', receiveLocal); };
   }, []);
 
   async function enableSound() {
