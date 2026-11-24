@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { BroadcastFrame } from './BroadcastFrame';
 import { passwords, prices, puzzles, shows, surveys } from './catalog';
 
 type Game = typeof shows[number]['id'];
@@ -161,7 +162,7 @@ function GameBoard({ show }: { show: typeof shows[number] }) {
     return <>
       <p className="np-label">{category} · {teams[board.team]}</p>
       <div className="np-wheel-wrap"><span aria-hidden="true">▼</span><div className="np-wheel" style={{ transform: 'rotate(' + board.rotation + 'deg)' }}>
-        {wedges.map((value, i) => <span key={value} style={{ transform: 'translate(-50%, -50%) rotate(' + (i * 45 + 22.5) + 'deg) translateY(-86px)' }}>{value === 0 ? 'PASS' : value < 0 ? 'SNOW' : value}</span>)}
+        {wedges.map((value, i) => <span key={value} style={{ transform: 'translate(-50%, -50%) rotate(' + (i * 45 + 22.5) + 'deg) translateY(var(--wheel-label-radius, -86px))' }}>{value === 0 ? 'PASS' : value < 0 ? 'SNOW' : value}</span>)}
       </div></div>
       <div className="np-puzzle" aria-label="Puzzle board">
         {phrase.split(' ').map((word, i) => <div key={i}>{[...word].map((char, j) => <span className="np-letter" key={j}>{solved || board.letters.includes(char) ? char : '\u00a0'}</span>)}</div>)}
@@ -208,6 +209,7 @@ function GameBoard({ show }: { show: typeof shows[number] }) {
         <div className="np-tiles np-gifts">{board.gifts.map((amount, i) => {
           const openGift = board.revealed.includes(i) || board.settled;
           const label = openGift ? money(amount) : board.held === i ? 'Your gift' : '🎁 ' + (i + 1);
+          if (display) return <div className={'broadcast-gift' + (openGift ? ' is-open' : '') + (board.held === i ? ' is-held' : '')} key={i}>{openGift ? money(amount) : board.held === i ? 'Your gift' : String(i + 1).padStart(2, '0')}</div>;
           return <button className={'np-button np-secondary' + (board.held === i ? ' np-held' : '')} key={i} disabled={display || openGift || board.offer !== null || board.held === i} onClick={() => open(i)}>{label}</button>;
         })}</div>
         <div className="np-actions np-values" aria-label="Gift values">{prizes.map(value => <span key={value} className={opened.includes(value) ? 'np-crossed' : ''}>{money(value)}</span>)}</div>
@@ -249,7 +251,7 @@ function GameBoard({ show }: { show: typeof shows[number] }) {
       <p className="np-label">{teams[board.team]} · {points} {points === 1 ? 'point' : 'points'} available</p>
       <h2>{board.settled ? password : 'Guess the password'}</h2>
       <div className="np-actions" aria-label="Clues">
-        {clues.map(clue => <span className="np-tile" key={clue}>{clue}</span>)}
+        {(display ? clues.slice(-6) : clues).map(clue => <span className="np-tile" key={clue}>{clue}</span>)}
         {!clues.length && !board.settled && <p>Waiting for the first clue.</p>}
       </div>
       {!display && !board.settled && <div className="np-controls">
@@ -269,7 +271,21 @@ function GameBoard({ show }: { show: typeof shows[number] }) {
   }
 
   const games: Record<Game, () => JSX.Element> = { price: renderPrice, feud: renderFeud, wheel: renderWheel, deal: renderDeal, password: renderPassword };
-  return <main className={'np-layout' + (display ? ' np-broadcast' : '')}>
+  if (display) {
+    const scores = show.id !== 'deal' && <div className="broadcast-scores">
+      {teams.map((team, i) => <div key={team}><span>{team}</span><strong>{board.scores[i]}</strong></div>)}
+    </div>;
+    return (
+      <BroadcastFrame game={show.id} title={show.title} detail={(show.id === 'deal' ? 'Game ' : 'Round ') + (board.round + 1)} scores={scores}>
+        <section className="broadcast-board">
+          {games[show.id]()}
+        </section>
+        {board.message && <p className="broadcast-status" role="status">{board.message}</p>}
+      </BroadcastFrame>
+    );
+  }
+
+  return <main className="np-layout">
     {!display && <nav className="np-actions"><Link to="/">← Lineup</Link><a href={'/games/' + show.id + '?display=1'} target="_blank" rel="noreferrer">Open display ↗</a></nav>}
     <header className="np-panel np-hero"><p className="np-label">North Pole dispatch · {show.id === 'deal' ? 'Game ' : 'Round '}{board.round + 1}</p><h1>{show.icon} {show.title}</h1><p>{show.description}</p></header>
     {storageError && <p role="alert">This browser blocked saved state. Play from the host board.</p>}

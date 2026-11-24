@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BroadcastFrame } from '../show/BroadcastFrame';
 import { TriviaQuestion } from '../types';
 import { MoneyLadder } from '../Components/MoneyLadder';
 import { QuestionDisplay } from '../Components/QuestionDisplay';
@@ -54,27 +55,15 @@ export default function Display() {
   const percent = (count: number) => (voteTotal === 0 ? 0 : Math.round((count / voteTotal) * 100));
   const voteUrl = `${window.location.origin}/vote`;
 
-  if (error && !game) {
-    return (
-      <div className="min-h-screen np-stage flex items-center justify-center p-8">
-        <p className="text-2xl text-[#85252e] text-center max-w-2xl">{error}</p>
-      </div>
-    );
-  }
-
   if (!game || !question) {
     return (
-      <div className="min-h-screen np-stage flex items-center justify-center relative overflow-hidden">
-        <div className="text-center relative z-10">
-          <div className="mb-6">
-            <span className="text-7xl animate-twinkle inline-block" style={{ animationDuration: '2s' }}>⭐</span>
-          </div>
-          <h1 className="text-6xl font-bold np-ink mb-4 ">
-            Who Wants to Be a Christmas Millionaire? 🎄
-          </h1>
-          <p className="np-ink text-2xl mt-8">Waiting for game to start...</p>
-        </div>
-      </div>
+      <BroadcastFrame game="millionaire" title="Christmas Millionaire" detail="Finale">
+        <section className="broadcast-board broadcast-standby">
+          <div className="broadcast-star" aria-hidden="true">✦</div>
+          <h2>Who Wants to Be a<br />Christmas Millionaire?</h2>
+          <p>{error ? 'Waiting for a connection to the game' : 'Waiting for the host'}</p>
+        </section>
+      </BroadcastFrame>
     );
   }
 
@@ -84,8 +73,8 @@ export default function Display() {
   const isWrongAnswer = game.show_correct && game.selected_answer !== question.correct_answer;
 
   return (
-    <div className="min-h-screen np-stage p-8 relative overflow-hidden">
-      <div className="relative z-10">
+    <BroadcastFrame game="millionaire" title="Christmas Millionaire" detail={'Question ' + game.current_level + ' / 15'}>
+      <div className="broadcast-millionaire">
         <SoundSystemController
           gameStatus={game.game_status}
           showCorrect={game.show_correct}
@@ -111,16 +100,8 @@ export default function Display() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
-          <div className="lg:col-span-3">
-            <div className="mb-4 flex items-center justify-center gap-4">
-              <span className="text-4xl animate-twinkle" style={{ animationDuration: '2s' }}>⭐</span>
-              <h1 className="text-4xl font-bold np-ink text-center ">
-                Who Wants to Be a Christmas Millionaire? 🎄
-              </h1>
-              <span className="text-4xl animate-twinkle" style={{ animationDuration: '2.5s' }}>⭐</span>
-            </div>
-
+        <div className="broadcast-millionaire-grid">
+          <section className="broadcast-questions">
             <QuestionDisplay
               question={question}
               onAnswer={() => {}}
@@ -131,7 +112,7 @@ export default function Display() {
             />
 
             {game.active_lifeline === 'audience' && (
-              <div className="mt-8 np-panel border-2 border-yellow-400 p-6 rounded-lg">
+              <div className="np-panel broadcast-audience">
                 <h3 className="text-2xl font-bold np-ink text-center mb-6">👥 Ask the Audience Results</h3>
                 <div className="grid grid-cols-4 gap-4">
                   {(['A', 'B', 'C', 'D'] as const).map((answer) => (
@@ -149,18 +130,18 @@ export default function Display() {
                 </div>
               </div>
             )}
-          </div>
+          </section>
 
-          <div className="lg:col-span-1">
+          <aside className="broadcast-millionaire-side">
             <MoneyLadder currentLevel={game.current_level} isActive={game.game_status === 'question_shown'} />
-            <div className="mt-6 np-panel p-4">
+            <div className="np-panel broadcast-qr">
               <div className="bg-white p-3 rounded-lg flex flex-col items-center justify-center">
-                <QRCodeSVG value={voteUrl} size={160} />
+                <QRCodeSVG value={voteUrl} size={128} />
                 <p className="text-xs font-bold text-gray-800 mt-2">Scan to Join</p>
               </div>
               <p className="np-ink text-sm text-center mt-3 font-semibold">Audience Reactions</p>
             </div>
-          </div>
+          </aside>
         </div>
       </div>
 
@@ -181,6 +162,6 @@ export default function Display() {
           isHost={false}
         />
       )}
-    </div>
+    </BroadcastFrame>
   );
 }

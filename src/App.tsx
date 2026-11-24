@@ -20,9 +20,9 @@ function App() {
       <Routes>
         <Route path="/" element={<Welcome />} />
         <Route path="/games/:id" element={<GameRoute />} />
+        <Route path="/displayurl" element={<Display />} />
         <Route element={<MillionaireLayout />}>
           <Route path="/hostjt" element={<Host />} />
-          <Route path="/displayurl" element={<Display />} />
           <Route path="/vote" element={<Vote />} />
           <Route path="/santa" element={<Santa />} />
         </Route>
