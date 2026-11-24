@@ -160,12 +160,22 @@ function GameBoard({ show }: { show: typeof shows[number] }) {
       setEntry('');
     }
     return <>
-      <p className="np-label">{category} · {teams[board.team]}</p>
-      <div className="np-wheel-wrap"><span aria-hidden="true">▼</span><div className="np-wheel" style={{ transform: 'rotate(' + board.rotation + 'deg)' }}>
-        {wedges.map((value, i) => <span key={value} style={{ transform: 'translate(-50%, -50%) rotate(' + (i * 45 + 22.5) + 'deg) translateY(var(--wheel-label-radius, -86px))' }}>{value === 0 ? 'PASS' : value < 0 ? 'SNOW' : value}</span>)}
-      </div></div>
-      <div className="np-puzzle" aria-label="Puzzle board">
-        {phrase.split(' ').map((word, i) => <div key={i}>{[...word].map((char, j) => <span className="np-letter" key={j}>{solved || board.letters.includes(char) ? char : '\u00a0'}</span>)}</div>)}
+      <p className="np-label broadcast-game-kicker">{category} · {teams[board.team]}</p>
+      <div className="broadcast-wheel-stage">
+        <div className="np-wheel-wrap"><span className="broadcast-wheel-pointer" aria-hidden="true">▼</span><div className="np-wheel" style={{ transform: 'rotate(' + board.rotation + 'deg)' }}>
+          {wedges.map((value, i) => {
+            const angle = (i * 45 - 90) * Math.PI / 180;
+            return <span className="broadcast-wheel-label" key={i} style={{ left: (50 + Math.cos(angle) * 34) + '%', top: (50 + Math.sin(angle) * 34) + '%' }}>{value === 0 ? 'PASS' : value < 0 ? 'SNOW' : value}</span>;
+          })}
+        </div></div>
+        <div className="broadcast-wheel-puzzle">
+          <div className="np-puzzle" aria-label="Puzzle board">
+            {phrase.split(' ').map((word, i) => <div key={i}>{[...word].map((char, j) => {
+              const revealed = solved || board.letters.includes(char);
+              return <span className={'np-letter' + (revealed ? ' is-revealed' : '')} key={j}>{revealed ? char : '\u00a0'}</span>;
+            })}</div>)}
+          </div>
+        </div>
       </div>
       {!display && !solved && <div className="np-controls">
         <button className="np-button" onClick={spin} disabled={board.spin !== null}>Spin</button>
