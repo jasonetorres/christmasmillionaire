@@ -207,7 +207,7 @@ function ProducerRoom({ room, update }: { room: RoomState; update: (changes: Par
 }
 
 function StreamDisplay({ room }: { room: RoomState }) {
-  const clock = useClock();
+  const clock = useClock(room.liveStartedAt);
   const active = lineup.find(item => item.id === room.gameId) ?? lineup[0];
   const percent = Math.max(0, Math.min(100, room.goal ? room.raised / room.goal * 100 : 0));
 
