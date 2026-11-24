@@ -13,9 +13,6 @@ type RoomState = {
   sponsors: string[];
   tickerVisible: boolean;
   goalVisible: boolean;
-  lowerThirdVisible: boolean;
-  lowerTitle: string;
-  lowerDetail: string;
   tiltifyOverlayUrl: string;
 };
 const STORAGE_KEY = 'north-pole-stream-room-v1';
@@ -30,9 +27,6 @@ const DEFAULT_STATE: RoomState = {
   sponsors: DEFAULT_SPONSORS,
   tickerVisible: true,
   goalVisible: true,
-  lowerThirdVisible: true,
-  lowerTitle: 'Christmas Birthday Stream',
-  lowerDetail: 'Six games · One goal · $10,000 for freeCodeCamp',
   tiltifyOverlayUrl: '',
 };
 const lineup = [
@@ -185,6 +179,7 @@ function ProducerRoom({ room, update }: { room: RoomState; update: (changes: Par
             <input type="url" placeholder="Paste a Tiltify overlay URL to show live totals" value={room.tiltifyOverlayUrl} onChange={overlayChanged} />
             <small>Get the live overlay URL in your campaign’s Branding section. Leave blank to use the editable tracker above.</small>
           </div>
+          <label className="studio-toggle studio-goal-toggle"><input type="checkbox" checked={room.goalVisible} onChange={event => update({ goalVisible: event.target.checked })} /><span>Show fundraiser tracker on stream</span></label>
         </section>
 
         <section className="studio-side-card">
@@ -193,12 +188,7 @@ function ProducerRoom({ room, update }: { room: RoomState; update: (changes: Par
           <small className="studio-muted">One partner per line. They scroll along the bottom of the display.</small>
         </section>
 
-        <section className="studio-side-card">
-          <div className="studio-card-title"><div><p className="studio-kicker">HOST GRAPHIC</p><h2>Lower third</h2></div><label className="studio-toggle"><input type="checkbox" checked={room.lowerThirdVisible} onChange={event => update({ lowerThirdVisible: event.target.checked })} /><span>Show</span></label></div>
-          <label className="studio-input-label">Headline<input value={room.lowerTitle} onChange={event => update({ lowerTitle: event.target.value })} /></label>
-          <label className="studio-input-label">Supporting line<input value={room.lowerDetail} onChange={event => update({ lowerDetail: event.target.value })} /></label>
-          <label className="studio-toggle studio-goal-toggle"><input type="checkbox" checked={room.goalVisible} onChange={event => update({ goalVisible: event.target.checked })} /><span>Show fundraiser tracker on stream</span></label>
-        </section>
+        
 
         <div className="studio-note"><span>↗</span><p><strong>One browser, two pages.</strong> Keep this control room open. Put <a href="/stream/display" target="_blank" rel="noreferrer">the stream display</a> into VideoRC as the full-screen source.</p></div>
       </aside>
@@ -212,26 +202,36 @@ function StreamDisplay({ room }: { room: RoomState }) {
   const percent = Math.max(0, Math.min(100, room.goal ? room.raised / room.goal * 100 : 0));
 
   return <main className={"stream-display stream-display-" + room.gameId}>
-    <div className="stream-display-game">
-      {room.standby
-        ? <div className="stream-standby"><span>✦</span><p>JASON TORRES PRESENTS</p><h1>Christmas Game Night</h1><div className="stream-standby-rule" /><strong>DECEMBER 18 · 2–8 PM EASTERN</strong><small>Six games. One very merry fundraiser.</small></div>
-        : <iframe key={room.gameId} src={displayPath(room.gameId)} title={active.name + ' broadcast view'} />}
-    </div>
     <header className="stream-display-header">
       <div className="stream-display-brand"><span>✦</span><strong>CHRISTMAS GAME NIGHT</strong></div>
       <div className="stream-display-segment"><small>NOW PLAYING</small><strong>{active.name}</strong></div>
       <div className="stream-display-clock"><small>{room.live ? 'LIVE · ' + clock.liveClock : 'DEC 18 · 2–8 PM ET'}</small><strong>{clock.clock}</strong></div>
     </header>
 
-    {room.goalVisible && <section className="stream-display-goal">
-      <div className="stream-goal-copy"><small>RAISING FOR FREECODECAMP</small><strong>{money(room.raised)} <span>of {money(room.goal)}</span></strong></div>
-      <div className="stream-goal-bar"><span style={{ width: percent + '%' }} /></div>
-      <div className="stream-goal-percent">{percent.toFixed(0)}%<small>GOAL</small></div>
-    </section>}
+    <div className="stream-display-game">
+      {room.standby
+        ? <div className="stream-standby"><span>✦</span><p>JASON TORRES PRESENTS</p><h1>Christmas Game Night</h1><div className="stream-standby-rule" /><strong>DECEMBER 18 · 2–8 PM EASTERN</strong><small>Six games. One very merry fundraiser.</small></div>
+        : <iframe key={room.gameId} src={displayPath(room.gameId)} title={active.name + ' broadcast view'} />}
+    </div>
 
-    {room.lowerThirdVisible && <section className="stream-lower-third"><span className="stream-lower-icon">✦</span><div><strong>{room.lowerTitle || 'Christmas Birthday Stream'}</strong><small>{room.lowerDetail}</small></div><span className="stream-lower-accent" /></section>}
+    <aside className="stream-chat-rail" aria-label="Chat background">
+      <div className="stream-chat-heading"><span>✦</span><div><strong>COMMUNITY CHAT</strong><small>THE NORTH POLE MESSAGE BOARD</small></div></div>
+      <div className="stream-chat-surface" aria-hidden="true" />
+      <div className="stream-chat-footer"><span>✦</span> Good tidings from the community</div>
+    </aside>
 
-    {room.tickerVisible && room.sponsors.length > 0 && <footer className="stream-sponsor-ticker"><strong>THANK YOU TO OUR PARTNERS</strong><div className="stream-ticker-track"><div>{[...room.sponsors, ...room.sponsors].map((sponsor, index) => <span key={index}>{sponsor}<i>✦</i></span>)}</div></div></footer>}
+    <div className="stream-bottom-dock">
+      {room.goalVisible && <section className="stream-display-goal" aria-label="Fundraising progress">
+        <div className="stream-goal-copy"><small>RAISING FOR FREECODECAMP</small><strong>{money(room.raised)} <span>of {money(room.goal)}</span></strong></div>
+        <div className="stream-goal-bar"><span style={{ width: percent + '%' }} /></div>
+        <div className="stream-goal-percent">{percent.toFixed(0)}%<small>GOAL</small></div>
+      </section>}
+
+      {room.tickerVisible && room.sponsors.length > 0 && <section className="stream-sponsor-ticker">
+        <strong>THANK YOU TO OUR PARTNERS</strong>
+        <div className="stream-ticker-track"><div>{[...room.sponsors, ...room.sponsors].map((sponsor, index) => <span key={index}>{sponsor}<i>✦</i></span>)}</div></div>
+      </section>}
+    </div>
 
     {room.tiltifyOverlayUrl && <iframe className="stream-tiltify-overlay" src={room.tiltifyOverlayUrl} title="Live Tiltify overlay" />}
   </main>;
