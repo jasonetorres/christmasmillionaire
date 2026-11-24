@@ -6,6 +6,7 @@ type GameId = 'price' | 'feud' | 'wheel' | 'deal' | 'password' | 'millionaire';
 type RoomState = {
   gameId: GameId;
   live: boolean;
+  liveStartedAt: number | null;
   standby: boolean;
   raised: number;
   goal: number;
@@ -22,6 +23,7 @@ const DEFAULT_SPONSORS = ['Laravel', 'Unkey', 'Mux', 'CoderHQ', 'WeMakeDevs', 'T
 const DEFAULT_STATE: RoomState = {
   gameId: 'price',
   live: false,
+  liveStartedAt: null,
   standby: true,
   raised: 0,
   goal: 10000,
@@ -89,7 +91,7 @@ function useRoom() {
   return { room, update };
 }
 
-function useClock() {
+function useClock(liveStartedAt: number | null) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 1000);
@@ -101,9 +103,9 @@ function useClock() {
   const minutes = Math.floor(remaining / 60000) % 60;
   const seconds = Math.floor(remaining / 1000) % 60;
   const clock = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', second: '2-digit', timeZoneName: 'short' }).format(now);
-  const liveDuration = Math.max(0, now - scheduleStart);
+  const liveDuration = Math.max(0, now - (liveStartedAt ?? scheduleStart));
   const elapsed = Math.floor(liveDuration / 1000);
-  const liveClock = [Math.floor(elapsed / 3600), Math.floor(elapsed / 60) % 60, elapsed % 60].map((part, i) => i === 0 ? String(part).padStart(2, '0') : String(part).padStart(2, '0')).join(':');
+  const liveClock = [Math.floor(elapsed / 3600), Math.floor(elapsed / 60) % 60, elapsed % 60].map(part => String(part).padStart(2, '0')).join(':');
   return { now, days, hours, minutes, seconds, clock, liveClock, started: now >= scheduleStart && now < scheduleEnd };
 }
 
@@ -114,7 +116,7 @@ export default function StreamHub() {
 }
 
 function ProducerRoom({ room, update }: { room: RoomState; update: (changes: Partial<RoomState>) => void }) {
-  const clock = useClock();
+  const clock = useClock(room.liveStartedAt);
   const active = lineup.find(item => item.id === room.gameId) ?? lineup[0];
   const percent = Math.max(0, Math.min(100, room.goal ? room.raised / room.goal * 100 : 0));
   const overlayChanged = (event: ChangeEvent<HTMLInputElement>) => update({ tiltifyOverlayUrl: event.target.value.trim() });
@@ -130,7 +132,7 @@ function ProducerRoom({ room, update }: { room: RoomState; update: (changes: Par
       <section className="studio-main">
         <div className="studio-welcome">
           <div><p className="studio-kicker">DECEMBER 18 · 2:00–8:00 PM ET</p><h1>Show control</h1><p className="studio-subtitle">Run the six-hour broadcast from one desk. This control room stays private; the display page is what goes on stream.</p></div>
-          <div className="studio-countdown"><span>{clock.started ? 'ON AIR FOR' : 'COUNTDOWN'}</span><strong>{clock.started ? clock.liveClock : clock.days + 'd ' + String(clock.hours).padStart(2, '0') + ':' + String(clock.minutes).padStart(2, '0') + ':' + String(clock.seconds).padStart(2, '0')}</strong><small>{clock.started ? 'scheduled close at 8:00 PM ET' : 'until December 18 at 2 PM ET'}</small></div>
+          <div className="studio-countdown"><span>{room.live ? 'ON AIR FOR' : clock.started ? 'SCHEDULED NOW' : 'COUNTDOWN'}</span><strong>{room.live ? clock.liveClock : clock.days + 'd ' + String(clock.hours).padStart(2, '0') + ':' + String(clock.minutes).padStart(2, '0') + ':' + String(clock.seconds).padStart(2, '0')}</strong><small>{room.live ? 'show clock · scheduled close 8 PM ET' : clock.started ? 'scheduled window · select Go live' : 'until December 18 at 2 PM ET'}</small></div>
         </div>
 
         <div className="studio-stage-card">
@@ -143,8 +145,8 @@ function ProducerRoom({ room, update }: { room: RoomState; update: (changes: Par
             </label>
           </div>
           <div className="studio-buttons">
-            <button className="studio-button studio-button-live" onClick={() => update({ live: true, standby: false })}>Go live</button>
-            <button className="studio-button" onClick={() => update({ live: false, standby: true })}>Standby screen</button>
+            <button className="studio-button studio-button-live" onClick={() => update({ live: true, liveStartedAt: room.liveStartedAt ?? Date.now(), standby: false })}>Go live</button>
+            <button className="studio-button" onClick={() => update({ live: false, liveStartedAt: null, standby: true })}>Standby screen</button>
             <button className="studio-button studio-button-quiet" onClick={() => {
               const index = lineup.findIndex(item => item.id === room.gameId);
               update({ gameId: lineup[(index + 1) % lineup.length].id, standby: false });

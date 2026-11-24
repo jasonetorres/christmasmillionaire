@@ -87,10 +87,10 @@
 .stream-goal-copy strong span { color:#b4dace; font-size:.56em; font-weight:500; }
 .stream-goal-bar { width:100%; height:11px; overflow:hidden; border-radius:99px; background:#ffffff2a; }
 .stream-goal-percent { display:grid; gap:2px; justify-items:end; font-size:16px; font-weight:800; }
-.stream-standby { width:min(68vw,1150px); padding:5vh 6vw; border:1px solid #ffffff32; border-radius:36px; background:radial-gradient(ellipse at 80% 0%,#d9efc833,transparent 40%),linear-gradient(140deg,#10394a,#0a2231); text-align:center; box-shadow:0 30px 100px #0008; }
+.stream-standby { width:min(90vw,1350px); padding:5vh 6vw; border:1px solid #ffffff32; border-radius:36px; background:radial-gradient(ellipse at 80% 0%,#d9efc833,transparent 40%),linear-gradient(140deg,#10394a,#0a2231); text-align:center; box-shadow:0 30px 100px #0008; }
 .stream-standby > span { color:#f1c865; font-size:clamp(55px,9vw,130px); text-shadow:0 0 52px #e8c46c88; }
 .stream-standby p { margin:12px 0; color:#a9d5cb; font-size:clamp(11px,1vw,18px); letter-spacing:.2em; }
-.stream-standby h1 { margin:10px 0 18px; font-size:clamp(32px,5.8vw,96px); letter-spacing:-.08em; }
+.stream-standby h1 { margin:10px 0 18px; font-size:clamp(30px,5.1vw,88px); letter-spacing:-.08em; }
 .stream-standby-rule { width:110px; height:3px; margin:0 auto 20px; background:linear-gradient(90deg,#bf3945,#f2c865); }
 .stream-standby > strong { display:block; color:#f1cf7a; font-size:clamp(11px,1vw,17px); letter-spacing:.16em; }
 .stream-standby > small { display:block; margin-top:14px; color:#c0ddd4; font-size:clamp(11px,.9vw,15px); }
@@ -125,7 +125,7 @@
   .studio-game-frame { height:460px; }
   .studio-sidebar { grid-template-columns:1fr; }
   .studio-lineup-status { display:none; }
-  .studio-display-header { top:1.5%; }
+  .stream-display-header { top:1.5%; }
   .stream-display-brand { min-width:0; }
   .stream-display-segment { display:none; }
   .stream-display-goal { top:11%; left:2%; min-width:0; width:94%; grid-template-columns:auto minmax(80px,1fr) auto; gap:9px; box-sizing:border-box; }
