@@ -212,3 +212,337 @@
   .broadcast--deal .np-gifts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .broadcast-millionaire-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+
+/* Broadcast boards: a consistent, polished game-show package across the five games. */
+.broadcast {
+  box-sizing: border-box;
+  height: 100svh;
+  overflow: hidden;
+}
+.broadcast-header { min-width: 0; align-items: center; }
+.broadcast-header h1 {
+  margin: .1em 0 0;
+  font-size: clamp(26px, min(3vw, 5.6svh), 58px);
+  letter-spacing: -.06em;
+}
+.broadcast-floor { min-height: 0; }
+.broadcast-board {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  border: 1px solid #fffbed;
+  border-radius: clamp(22px, 2.3vw, 42px);
+  background: radial-gradient(ellipse at 18% 0%, #fff 0, transparent 48%), linear-gradient(145deg, #fffdf3, #fffbed 58%, #f7edcc);
+  box-shadow: inset 0 0 0 6px #81afbc20, 0 16px 45px #070f2370;
+}
+.broadcast-board > * { position: relative; z-index: 1; }
+.broadcast-board h2 { color:var(--stage-ink); }
+.broadcast-game-kicker {
+  margin: 0;
+  padding: .55em 1.1em;
+  border: 1px solid #c6dbcc;
+  border-radius: 999px;
+  background: #edf6e7;
+  color: #254f55;
+  font-size: clamp(11px, .85vw, 16px);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.broadcast-status {
+  color: #fffbed;
+  border-color: #ffffff4a;
+  background: #112437e8;
+  box-shadow: 0 6px 18px #070f2355;
+}
+
+/* Price guessing */
+.broadcast--price .broadcast-board { align-content: center; }
+.broadcast--price .broadcast-board > h2 {
+  margin: 0;
+  color: #254f55;
+  font-size: clamp(30px, min(4.5vw, 7svh), 76px);
+  letter-spacing: -.06em;
+}
+.broadcast--price .np-tiles {
+  width: min(100%, 1000px);
+  gap: clamp(14px, 2vw, 32px);
+  margin: 0 auto;
+}
+.broadcast--price .np-tile {
+  min-height: clamp(130px, 22svh, 240px);
+  align-content: center;
+  gap: .6em;
+  padding: clamp(18px, 2.4vw, 40px);
+  border: 1px solid #c6dbcc;
+  border-radius: 26px;
+  background: radial-gradient(ellipse at top right, #ffffffb8, transparent 62%), linear-gradient(145deg, #e9f5e1, #d9efc8);
+  box-shadow: 0 6px 0 #a6c6a4, 0 18px 36px #254f551c;
+  color: #254f55;
+  text-align: center;
+}
+.broadcast--price .np-tile span {
+  color: #52766e;
+  font-size: clamp(12px, 1.05vw, 19px);
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.broadcast--price .np-tile strong { color: #254f55; font-size: clamp(38px, 5.2vw, 86px); }
+.broadcast--price .np-result {
+  padding: .45em 1em;
+  border-radius: 14px;
+  color: #254f55;
+  background: #fbd475;
+}
+
+/* Survey board */
+.broadcast--feud .broadcast-board { align-content: center; }
+.broadcast--feud .broadcast-board h2 {
+  max-width: 24ch;
+  margin: 0;
+  color: #254f55;
+  font-size: clamp(28px, min(4vw, 6svh), 68px);
+}
+.broadcast--feud .np-survey {
+  width: min(100%, 1120px);
+  gap: clamp(7px, 1vh, 13px);
+  margin: 0;
+}
+.broadcast--feud .np-survey li {
+  min-height: clamp(48px, 7svh, 82px);
+  grid-template-columns: 2.7em minmax(0, 1fr) 3.2em;
+  gap: clamp(12px, 1.5vw, 24px);
+  padding: .3em .9em;
+  border: 1px solid #315e76;
+  border-radius: 15px;
+  background: linear-gradient(100deg, #1b4964, #245d78);
+  box-shadow: inset 0 1px #ffffff28, 0 5px 0 #102f49, 0 12px 22px #15334b24;
+  color: #fffbed;
+}
+.broadcast--feud .np-survey li > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 2.1em;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: #fffbed;
+  color: #254f55;
+  font-size: .7em;
+  font-weight: 900;
+}
+.broadcast--feud .np-survey li strong { font-size: clamp(16px, min(2vw, 3.4svh), 32px); }
+.broadcast--feud .np-survey li > span:last-child {
+  padding: .2em .35em;
+  border-radius: 10px;
+  background: #102f49;
+  text-align: center;
+  font-size: clamp(14px, 1.5vw, 24px);
+  font-weight: 900;
+}
+
+/* Wheel of Winter */
+.broadcast--wheel .broadcast-board {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+  justify-items: stretch;
+  gap: clamp(14px, 2vh, 24px);
+  padding: clamp(20px, 2.4vw, 42px);
+}
+.broadcast--wheel .broadcast-game-kicker { justify-self: center; }
+.broadcast-wheel-stage {
+  display: grid;
+  grid-template-columns: minmax(0, .85fr) minmax(0, 1.55fr);
+  gap: clamp(18px, 3vw, 52px);
+  align-items: center;
+  width: 100%;
+  min-height: 0;
+}
+.broadcast--wheel .np-wheel-wrap {
+  place-self: center;
+  filter: drop-shadow(0 20px 22px #173f4530);
+}
+.broadcast--wheel .np-wheel {
+  --wheel-size: clamp(230px, min(29vw, 48svh), 470px);
+  width: var(--wheel-size);
+  max-width: 100%;
+  border: clamp(8px, .8vw, 14px) solid #254f55;
+  background: conic-gradient(
+    #8fd3f0 0 43deg, #fffbed 43deg 45deg,
+    #fbd475 45deg 88deg, #fffbed 88deg 90deg,
+    #d9efc8 90deg 133deg, #fffbed 133deg 135deg,
+    #fac2bd 135deg 178deg, #fffbed 178deg 180deg,
+    #8fd3f0 180deg 223deg, #fffbed 223deg 225deg,
+    #fbd475 225deg 268deg, #fffbed 268deg 270deg,
+    #fac2bd 270deg 313deg, #fffbed 313deg 315deg,
+    #d9efc8 315deg 358deg, #fffbed 358deg 360deg
+  );
+  box-shadow: 0 0 0 5px #fbd475, inset 0 0 0 3px #ffffff91, 0 14px 26px #173f4544;
+}
+.broadcast--wheel .np-wheel::after {
+  inset: 42%;
+  background: radial-gradient(circle at 35% 28%, #438891, #254f55 72%);
+  border: 4px solid #fffbed;
+  box-shadow: 0 4px 8px #173f4555;
+}
+.broadcast--wheel .np-wheel-wrap > .broadcast-wheel-pointer {
+  z-index: 3;
+  top: -17px;
+  color: #b53336;
+  font-size: clamp(23px, 2vw, 36px);
+  filter: drop-shadow(0 2px 0 #fffbed);
+}
+.broadcast--wheel .broadcast-wheel-label {
+  z-index: 2;
+  width: 23%;
+  color: #173f45;
+  font-size: clamp(10px, 1.05vw, 18px);
+  font-weight: 900;
+  letter-spacing: -.03em;
+  text-align: center;
+  text-shadow: 0 1px #ffffffa8;
+  translate: -50% -50%;
+}
+.broadcast-wheel-puzzle {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(16px, 2vw, 34px);
+  border: 1px solid #d3e4d6;
+  border-radius: 26px;
+  background: radial-gradient(ellipse at top right, #fff 0, transparent 62%), linear-gradient(145deg, #f4f8ec, #e8f3e3);
+  box-shadow: inset 0 2px 5px #254f5512, 0 8px 18px #254f5510;
+}
+.broadcast--wheel .np-puzzle {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: center;
+  gap: clamp(16px, 2.5vh, 28px) clamp(18px, 2.4vw, 40px);
+  width: 100%;
+  max-width: 100%;
+}
+.broadcast--wheel .np-puzzle > div {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: clamp(3px, .35vw, 7px);
+  width: max-content;
+  max-width: 100%;
+}
+.broadcast--wheel .np-letter {
+  position: relative;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: clamp(25px, 2.35vw, 43px);
+  height: auto;
+  min-height: 0;
+  aspect-ratio: .78;
+  padding: 0;
+  border: 1px solid #c4d9c7;
+  border-radius: 8px 8px 12px 12px;
+  background: linear-gradient(160deg, #fffdf3, #fbd475);
+  box-shadow: inset 0 1px #fff, 0 4px 0 #c8a94c;
+  color: #254f55;
+  font-size: clamp(15px, 1.55vw, 27px);
+  font-weight: 900;
+  line-height: 1;
+}
+.broadcast--wheel .np-letter:not(.is-revealed)::after {
+  content: '✦';
+  position: absolute;
+  color: #b99238;
+  font-size: .3em;
+}
+.broadcast--wheel .np-letter.is-revealed {
+  border-color: #a6c6a4;
+  background: linear-gradient(160deg, #e8f5dd, #cfe8c4);
+  box-shadow: inset 0 1px #fff, 0 4px 0 #9fbd99;
+}
+.broadcast--wheel .np-letter.is-revealed::after { content: none; }
+
+/* Deal or No Sleigh */
+.broadcast--deal .broadcast-board { align-content: center; }
+.broadcast--deal .np-gifts { width: min(100%, 1240px); margin: 0 auto; gap: clamp(9px, 1.1vw, 18px); }
+.broadcast--deal .broadcast-gift {
+  position: relative;
+  min-height: 0;
+  aspect-ratio: .92;
+  overflow: hidden;
+  border: 1px solid #ffffff70;
+  border-radius: 18px;
+  background-image: linear-gradient(90deg, transparent 44%, #ffe6a4 44% 56%, transparent 56%), linear-gradient(0deg, transparent 43%, #ffe6a4 43% 55%, transparent 55%), linear-gradient(145deg, #c44b57, #8f2638);
+  box-shadow: inset 0 1px #ffffff70, inset 0 -7px #5e1d314d, 0 7px 0 #762637, 0 14px 24px #4b243232;
+  font-size: clamp(17px, 2vw, 34px);
+  text-shadow: 0 2px 3px #4d122a;
+}
+.broadcast--deal .broadcast-gift:nth-child(3n + 2) {
+  background-image: linear-gradient(90deg, transparent 44%, #ffe6a4 44% 56%, transparent 56%), linear-gradient(0deg, transparent 43%, #ffe6a4 43% 55%, transparent 55%), linear-gradient(145deg, #438b73, #23604e);
+}
+.broadcast--deal .broadcast-gift:nth-child(3n + 3) {
+  background-image: linear-gradient(90deg, transparent 44%, #ffe6a4 44% 56%, transparent 56%), linear-gradient(0deg, transparent 43%, #ffe6a4 43% 55%, transparent 55%), linear-gradient(145deg, #4985a8, #285371);
+}
+.broadcast--deal .broadcast-gift.is-open {
+  border-color: #c6dbcc;
+  background: linear-gradient(145deg, #fffdf3, #e8f3e3);
+  box-shadow: inset 0 1px #fff, 0 5px 0 #b8d2b6, 0 12px 22px #254f5518;
+  color: #254f55;
+}
+.broadcast--deal .broadcast-gift.is-held:not(.is-open) {
+  background-image: linear-gradient(90deg, transparent 44%, #fffbed 44% 56%, transparent 56%), linear-gradient(0deg, transparent 43%, #fffbed 43% 55%, transparent 55%), linear-gradient(145deg, #e9bd4f, #bd8428);
+  color: #254f55;
+}
+
+/* North Pole Password */
+.broadcast--password .broadcast-board { align-content: center; }
+.broadcast--password .broadcast-board h2 {
+  margin: 0;
+  padding: .35em .8em;
+  border: 1px solid #dac9ed;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #f7f1ff, #e8daf9);
+  box-shadow: 0 5px 0 #cdb8e2;
+  color: #412869;
+}
+.broadcast--password .np-actions[aria-label="Clues"] {
+  justify-content: center;
+  max-width: 1100px;
+  gap: clamp(12px, 1.6vw, 24px);
+}
+.broadcast--password .np-actions[aria-label="Clues"] .np-tile {
+  min-width: clamp(140px, 17vw, 250px);
+  justify-items: center;
+  border: 1px solid #dac9ed;
+  border-radius: 18px;
+  background: radial-gradient(ellipse at top right, #fff 0, transparent 62%), linear-gradient(145deg, #f7f1ff, #e8daf9);
+  box-shadow: 0 6px 0 #cdb8e2, 0 12px 20px #41286918;
+  color: #412869;
+  font-size: clamp(17px, 1.7vw, 29px);
+  font-weight: 800;
+}
+
+@media (max-width: 900px) {
+  .broadcast--wheel .broadcast-board { padding: 16px; }
+  .broadcast-wheel-stage { grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr); gap: 12px; }
+  .broadcast--wheel .np-wheel { --wheel-size: clamp(180px, min(27vw, 45svh), 360px); }
+  .broadcast--wheel .np-letter { width: clamp(20px, 2.5vw, 32px); }
+  .broadcast--deal .np-gifts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .broadcast { height: auto; min-height: 100svh; overflow: visible; }
+  .broadcast-board { height: auto; min-height: 60svh; }
+  .broadcast-wheel-stage { grid-template-columns: minmax(0, 1fr); }
+  .broadcast--wheel .np-wheel { --wheel-size: clamp(180px, 52vw, 280px); }
+  .broadcast--wheel .np-puzzle > div { flex-wrap: wrap; justify-content: center; }
+  .broadcast--wheel .np-letter { width: clamp(22px, 5vw, 34px); }
+  .broadcast--deal .np-gifts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .broadcast-snow { animation: none; }
+}
