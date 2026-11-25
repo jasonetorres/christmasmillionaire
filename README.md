@@ -8,11 +8,22 @@ The site is a Vite + React app on Vercel. The browser never talks to the databas
 
 | Path | Who uses it |
 | --- | --- |
-| `/` | Picker for the host panel and the display |
-| `/hostjt` | Host controls. Asks for the host code, then calls `/api/host` |
-| `/displayurl` | Projector / stream view. Polls `/api/state` every 2 seconds |
-| `/vote` | Audience phones. QR code on the display points here |
+| `/` | Welcome and the six-game lineup, 2:00–8:00 PM ET |
+| `/stream` | Show control room for the host. Lineup, go-live, fundraiser, and sound cues |
+| `/stream/display` | Main 1280×720 broadcast for StreamYard. Standby, the current game, chat lane, and goal |
+| `/react` | Audience phones. Reactions that fly across the stream display |
+| `/games/price` | Host board for The Price Is Merry, 2:00–3:00 PM ET |
+| `/games/feud` | Host board for Holiday Family Feud, 3:00–4:00 PM ET |
+| `/games/wheel` | Host board for Wheel of Winter, 4:00–5:00 PM ET |
+| `/games/deal` | Host board for Deal or No Sleigh, 5:00–6:00 PM ET |
+| `/games/password` | Host board for North Pole Password, 6:00–7:00 PM ET |
+| `/games/:id?display=1` | 1280×720 stream view for that game |
+| `/hostjt` | Christmas Millionaire host controls, 7:00–8:00 PM ET. Asks for the host code, then calls `/api/host` |
+| `/displayurl` | Christmas Millionaire 1280×720 stream view. Polls `/api/state` every 2 seconds |
+| `/vote` | Millionaire audience phones. QR code on the display points here |
 | `/santa` | Standalone Santa call. Same API as Phone a Friend |
+
+The five hourly games keep their boards in this browser. They render with no database. Host messages and sound cues do too: if `DATABASE_URL` is missing, the control room sends them to the open stream display in the same browser. Viewer reactions from other phones need the database.
 
 ## Environment variables
 
@@ -31,12 +42,14 @@ Copy `.env.example` to `.env` for local commands. `npm run db:migrate`, `npm run
 
 ## Database
 
-One idempotent migration, `db/migrations/001_schema.sql`, creates:
+Two idempotent migrations. `db/migrations/001_schema.sql` creates:
 
 - `trivia_questions`
 - `game_state`
 - `audience_votes` (`vote` is `A`–`D`)
 - `emoji_reactions`
+
+`db/migrations/002_stream_overlay_events.sql` creates `stream_overlay_events` for audience reactions, on-screen messages, and sound cues that come from other devices.
 
 ```bash
 npm run db:migrate

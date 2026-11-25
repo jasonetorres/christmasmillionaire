@@ -1,0 +1,17 @@
+.broadcast-viewport {
+  width: 100vw;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 20px 33px, #ffffffa8 0 2px, transparent 3px) 0 0 / 109px 89px,
+    radial-gradient(circle at 24px 18px, #ffffff80 0 1px, transparent 2px) 0 0 / 63px 47px,
+    linear-gradient(#8fd3f0, #e6f6f4);
+}
+
+.broadcast-stage-frame {
+  border: 0;
+  transform-origin: center center;
+  background: transparent;
+}

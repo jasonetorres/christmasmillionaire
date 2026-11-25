@@ -51,7 +51,7 @@ export default function Vote() {
                 <div key={answer} className="relative">
                   <button
                     onClick={() => submitVote(answer)}
-                    className="w-full bg-gradient-to-br from-green-700 to-green-800 np-ink p-12 rounded-xl text-6xl font-bold hover:from-green-800 hover:to-green-900 transition-all shadow-2xl hover:scale-105 border-4 border-yellow-400"
+                    className="w-full np-panel np-ink p-12 rounded-xl text-6xl font-bold border-4 border-[#fbd475]"
                   >
                     {answer}
                   </button>
@@ -72,7 +72,7 @@ export default function Vote() {
               <h3 className="text-xl font-bold np-ink text-center mb-4">Current Vote Count</h3>
               <div className="grid grid-cols-2 gap-4">
                 {(['A', 'B', 'C', 'D'] as const).map((answer) => (
-                  <div key={answer} className="bg-gradient-to-br from-red-800 to-red-900 p-4 rounded-lg border-2 border-yellow-400 text-center">
+                  <div key={answer} className="np-tile p-4 text-center">
                     <div className="text-4xl font-bold np-ink mb-1">{answer}</div>
                     <div className="text-2xl font-bold np-ink">{votes[answer]}</div>
                   </div>
@@ -97,7 +97,7 @@ export default function Vote() {
               <button
                 key={emoji}
                 onClick={() => react(emoji)}
-                className="text-4xl hover:scale-125 transition-all active:scale-95 bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-2 hover:from-red-700 hover:to-red-800 border-2 border-yellow-300"
+                className="text-4xl rounded-2xl p-2 border border-[#c6dbcc] bg-[#edf6e7] shadow-[0_4px_0_#c6dbcc]"
               >
                 {emoji}
               </button>
@@ -110,7 +110,7 @@ export default function Vote() {
             href="https://docs.google.com/forms/d/e/1FAIpQLSdLo2ycnyWO1WrS69KM9YWRtz6o2rouRgVPkL_lDhM-JsEFXQ/viewform?usp=publish-editor"
             target="_blank"
             rel="noopener noreferrer"
-            className="block w-full bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-900 font-bold text-2xl py-6 px-8 rounded-xl shadow-2xl hover:from-yellow-300 hover:to-yellow-400 transition-all transform hover:scale-105 text-center border-4 border-red-700"
+            className="np-button block w-full font-bold text-2xl py-6 px-8 text-center"
           >
             🎁 Enter Drawing 🎁
           </a>

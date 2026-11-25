@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { BroadcastStageShell, needsStageShell } from './BroadcastStage';
 import './broadcast.css';
 
 interface BroadcastFrameProps {
@@ -10,6 +11,7 @@ interface BroadcastFrameProps {
 }
 
 export function BroadcastFrame({ game, title, detail, children, scores }: BroadcastFrameProps) {
+  if (needsStageShell()) return <BroadcastStageShell />;
   return (
     <main className={'broadcast broadcast--' + game}>
       <div className="broadcast-snow" aria-hidden="true" />

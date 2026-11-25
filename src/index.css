@@ -14,6 +14,10 @@
   color: var(--np-ink);
 }
 
+body, button, input, select, textarea {
+  font-family: 'JetBrains Mono', monospace;
+}
+
 body {
   margin: 0;
   min-width: 0;
@@ -81,6 +85,79 @@ button:not(:disabled), summary { cursor: pointer; }
 .np-legacy .np-stage .np-panel button { border-radius: 15px; }
 .np-legacy .np-stage .np-muted { color: #3c6b60; }
 .np-legacy .np-stage .np-ink { color: var(--np-ink); }
+
+.np-call-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: #8fd3f0cc;
+}
+.np-call-card {
+  width: min(100%, 440px);
+  display: grid;
+  justify-items: center;
+  gap: .75rem;
+  padding: clamp(1.5rem, 4vw, 2.4rem);
+  border-radius: 28px;
+  background: radial-gradient(ellipse at top right, #d9efc8 0, transparent 46%), var(--np-cream);
+  border: 1px solid var(--np-line);
+  box-shadow: 0 7px 0 #387f8529, 0 24px 60px #295c6a24;
+  color: var(--np-ink);
+  text-align: center;
+}
+.np-call-card h1, .np-call-card h3 { margin: 0; font-weight: 800; letter-spacing: -.05em; }
+.np-call-card h1 { font-size: clamp(2rem, 5vw, 2.6rem); }
+.np-call-avatar {
+  display: grid;
+  place-items: center;
+  width: 7rem;
+  height: 7rem;
+  margin: .25rem auto;
+  border-radius: 50%;
+  background: var(--np-gold);
+  box-shadow: 0 4px 0 #e4c56a;
+  font-size: 3.4rem;
+}
+.np-call-avatar.is-speaking { animation: twinkle 1.2s ease-in-out infinite; }
+.np-call-card p { margin: 0; color: #3c6b60; }
+.np-call-error { color: #85252e; font-weight: 700; }
+.np-talk, .np-hangup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  width: 7rem;
+  height: 7rem;
+  border: 0;
+  border-radius: 50%;
+  font-weight: 800;
+  text-decoration: none;
+}
+.np-talk { background: var(--np-mint); color: var(--np-ink); box-shadow: 0 4px 0 #a6c6a4; }
+.np-talk:disabled { opacity: .55; }
+.np-talk.is-live, .np-hangup { background: var(--np-coral); color: white; box-shadow: 0 4px 0 #782b35; }
+.np-call-host {
+  position: fixed;
+  z-index: 50;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .35rem 1rem;
+  align-items: center;
+  width: min(100% - 2rem, 360px);
+  padding: 1rem;
+  border-radius: 24px;
+  background: var(--np-cream);
+  border: 1px solid var(--np-line);
+  box-shadow: 0 6px 0 #387f8529, 0 18px 40px #295c6a22;
+  color: var(--np-ink);
+}
+.np-call-host .np-call-avatar { width: 3.4rem; height: 3.4rem; margin: 0; font-size: 1.7rem; }
+.np-call-host .np-button { grid-column: 1 / -1; }
 
 @media (max-width: 660px) {
   .np-lineup { grid-template-columns: 1fr; }

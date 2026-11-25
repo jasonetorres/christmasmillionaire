@@ -35,14 +35,14 @@ export function MoneyLadder({ currentLevel, isActive }: MoneyLadderProps) {
               className={`
                 px-4 py-2 rounded-lg text-center font-bold transition-all duration-300
                 ${isCurrent && isActive
-                  ? 'bg-[#fbd475] text-black scale-105 shadow-lg shadow-yellow-500/50'
+                  ? 'bg-[#fbd475] text-[#254f55] scale-105 shadow-lg'
                   : isPassed
-                  ? 'bg-gray-700 text-gray-400'
+                  ? 'bg-[#edf6e7] text-[#6b8a81]'
                   : milestone
-                  ? 'bg-orange-600 np-ink'
-                  : 'bg-[#e5f3df] np-ink'
+                  ? 'bg-[#fce6aa] text-[#254f55]'
+                  : 'bg-[#e5f3df] text-[#254f55]'
                 }
-                ${milestone && !isPassed && !isCurrent ? 'border-2 border-orange-400' : ''}
+                ${milestone && !isPassed && !isCurrent ? 'border-2 border-[#e4c56a]' : ''}
               `}
             >
               <span className="text-sm">{level}.</span> {amount}

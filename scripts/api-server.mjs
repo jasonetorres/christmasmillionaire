@@ -6,6 +6,7 @@ import { POST as postVote } from '../api/votes.js';
 import { POST as postReaction } from '../api/reactions.js';
 import { POST as postHangup } from '../api/phone/hangup.js';
 import { POST as postSanta } from '../api/santa-chat.js';
+import { GET as getStreamEvents, POST as postStreamEvent } from '../api/stream-events.js';
 
 loadEnv();
 
@@ -16,6 +17,8 @@ const routes = new Map([
   ['POST /api/reactions', postReaction],
   ['POST /api/phone/hangup', postHangup],
   ['POST /api/santa-chat', postSanta],
+  ['GET /api/stream-events', getStreamEvents],
+  ['POST /api/stream-events', postStreamEvent],
 ]);
 
 function toRequest(req) {

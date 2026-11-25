@@ -24,7 +24,7 @@ export function Lifelines({
       <button
         onClick={onFiftyFifty}
         disabled={fiftyFiftyUsed || disabled}
-        className={`flex flex-col items-center justify-center w-20 h-20 rounded-full transition-all duration-300 ${fiftyFiftyUsed ? 'bg-gray-700 text-gray-500 cursor-not-allowed opacity-50' : 'bg-gradient-to-br from-orange-500 to-orange-700 text-white hover:scale-110 hover:shadow-xl hover:shadow-orange-500/50'}`}
+        className={`flex flex-col items-center justify-center w-20 h-20 rounded-full transition-all duration-300 ${fiftyFiftyUsed ? 'bg-[#edf6e7] text-[#8aa] cursor-not-allowed opacity-50' : 'bg-[#fbd475] text-[#254f55] shadow-[0_4px_0_#e4c56a]'}`}
         title="50:50"
       >
         <Divide className="w-8 h-8" />
@@ -34,7 +34,7 @@ export function Lifelines({
       <button
         onClick={onPhoneFriend}
         disabled={phoneFriendUsed || disabled}
-        className={`flex flex-col items-center justify-center w-20 h-20 rounded-full transition-all duration-300 ${phoneFriendUsed ? 'bg-gray-700 text-gray-500 cursor-not-allowed opacity-50' : 'bg-gradient-to-br from-green-500 to-green-700 text-white hover:scale-110 hover:shadow-xl hover:shadow-green-500/50'}`}
+        className={`flex flex-col items-center justify-center w-20 h-20 rounded-full transition-all duration-300 ${phoneFriendUsed ? 'bg-[#edf6e7] text-[#8aa] cursor-not-allowed opacity-50' : 'bg-[#b53336] text-white shadow-[0_4px_0_#782b35]'}`}
         title="Phone a Friend"
       >
         <Phone className="w-8 h-8" />
@@ -44,7 +44,7 @@ export function Lifelines({
       <button
         onClick={onAskAudience}
         disabled={askAudienceUsed || disabled}
-        className={`flex flex-col items-center justify-center w-20 h-20 rounded-full transition-all duration-300 ${askAudienceUsed ? 'bg-gray-700 text-gray-500 cursor-not-allowed opacity-50' : 'bg-gradient-to-br from-blue-500 to-blue-700 text-white hover:scale-110 hover:shadow-xl hover:shadow-blue-500/50'}`}
+        className={`flex flex-col items-center justify-center w-20 h-20 rounded-full transition-all duration-300 ${askAudienceUsed ? 'bg-[#edf6e7] text-[#8aa] cursor-not-allowed opacity-50' : 'bg-[#8fd3f0] text-[#254f55] shadow-[0_4px_0_#6eb8d4]'}`}
         title="Ask the Audience"
       >
         <Users className="w-8 h-8" />

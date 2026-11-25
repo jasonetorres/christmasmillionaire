@@ -87,7 +87,7 @@ export default function Display() {
         {isCorrectAnswer && <Celebration isWin={hasWon} />}
 
         {isGameOver && isWrongAnswer && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="np-call-scrim">
             <div className="np-panel p-12 max-w-2xl mx-4 text-center shadow-2xl">
               <h2 className="text-5xl font-bold np-ink mb-6">GAME OVER 🎄</h2>
               <p className="text-2xl np-ink mb-8">Unfortunately, that was the wrong answer.</p>
@@ -118,7 +118,7 @@ export default function Display() {
                   {(['A', 'B', 'C', 'D'] as const).map((answer) => (
                     <div key={answer} className="text-center">
                       <div className="text-3xl font-bold np-ink mb-2">{percent(votes[answer])}%</div>
-                      <div className="bg-green-800 h-32 relative rounded-lg overflow-hidden border-2 border-yellow-400">
+                      <div className="bg-[#d9efc8] h-32 relative rounded-lg overflow-hidden border-2 border-[#fbd475]">
                         <div
                           className="absolute bottom-0 w-full bg-gradient-to-t from-yellow-400 to-yellow-300 transition-all duration-500"
                           style={{ height: `${percent(votes[answer])}%` }}

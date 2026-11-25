@@ -6,6 +6,15 @@ export const shows = [
   { id: 'password', title: 'North Pole Password', icon: '🔑', description: 'Give one-word clues and guess the hidden holiday word.' },
 ] as const;
 
+export const schedule = [
+  { id: 'price', time: '2:00–3:00 PM ET', name: 'The Price Is Merry', icon: '🏷️', description: 'Guess the price without going over.' },
+  { id: 'feud', time: '3:00–4:00 PM ET', name: 'Holiday Family Feud', icon: '☃️', description: 'Find the answers on the survey board.' },
+  { id: 'wheel', time: '4:00–5:00 PM ET', name: 'Wheel of Winter', icon: '❄️', description: 'Spin, call a letter, and solve the holiday puzzle.' },
+  { id: 'deal', time: '5:00–6:00 PM ET', name: 'Deal or No Sleigh', icon: '🎁', description: 'Pick a gift and decide when to take the banker’s offer.' },
+  { id: 'password', time: '6:00–7:00 PM ET', name: 'North Pole Password', icon: '🔑', description: 'Give one-word clues and guess the hidden holiday word.' },
+  { id: 'millionaire', time: '7:00–8:00 PM ET', name: 'Christmas Millionaire', icon: '⭐', description: 'Climb the money ladder with three lifelines.' },
+] as const;
+
 export const prices = [
   ['Box of candy canes', 399], ['String of 100 holiday lights', 1299],
   ['Gingerbread house kit', 1499], ['Pair of fleece slippers', 2499],

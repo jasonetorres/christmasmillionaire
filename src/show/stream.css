@@ -579,3 +579,30 @@
 @media (max-width: 620px) {
   .stream-display-game { inset: 4% 2.3% 14%; }
 }
+
+.studio-note {
+  border: 1px solid #c6dbcc;
+  background: #fffbed;
+  color: #254f55;
+  box-shadow: 0 4px 0 #387f8520;
+}
+.studio-note > span { color: #b88629; }
+.studio-note a { color: #b53336; }
+.studio-open-display {
+  color: #fff;
+  background: #b53336;
+  box-shadow: 0 4px 0 #782b35;
+}
+.studio-lineup-item { font: inherit; }
+
+/* 1280×720 stage: keep the lower rail readable inside a 720px-tall frame. */
+.stream-display-game { inset: 3.5% calc(var(--stream-chat-width) + 3.6%) 118px 2.2%; }
+.stream-chat-rail { top: 3.5%; bottom: 118px; }
+.stream-bottom-dock {
+  bottom: 16px;
+  height: 90px;
+  min-height: 90px;
+  max-height: 90px;
+}
+.stream-display-goal { padding: 8px 12px; }
+.stream-goal-copy strong { font-size: 16px; }

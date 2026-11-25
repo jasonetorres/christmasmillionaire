@@ -27,7 +27,7 @@ export function QuestionDisplay({
   }, [question?.id]);
 
   if (!question) {
-    return <div className="text-center text-white text-2xl">Loading question...</div>;
+    return <div className="text-center np-ink text-2xl">Loading question...</div>;
   }
 
   const answers: Array<{ letter: 'A' | 'B' | 'C' | 'D'; text: string }> = [
@@ -39,15 +39,15 @@ export function QuestionDisplay({
 
   const getAnswerStyle = (letter: 'A' | 'B' | 'C' | 'D') => {
     if (removedAnswers.has(letter)) {
-      return 'opacity-30 cursor-not-allowed bg-gray-800 text-gray-600';
+      return 'opacity-40 cursor-not-allowed bg-[#edf6e7] text-[#6b8a81]';
     }
 
     if (showResult) {
       if (letter === question.correct_answer) {
-        return 'bg-[#2d694a] text-white border-green-400 shadow-lg shadow-green-500/50';
+        return 'bg-[#d9efc8] text-[#254f55] border-[#428267] shadow-lg';
       }
       if (letter === selectedAnswer && selectedAnswer !== question.correct_answer) {
-        return 'bg-[#b53336] text-white border-red-400 shadow-lg shadow-red-500/50';
+        return 'bg-[#fde8e4] text-[#254f55] border-[#b53336] shadow-lg';
       }
     }
 

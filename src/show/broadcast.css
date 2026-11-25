@@ -197,7 +197,7 @@
 .broadcast-qr > p { margin-top: .2em; }
 .broadcast-audience { margin-top: 1svh; padding: 1.1svh 1.5vw; color: var(--stage-ink); }
 .broadcast-audience h3 { margin-bottom: .2em; }
-.broadcast-audience .h-32 { height: 8.5svh; background: #254f55; }
+.broadcast-audience .h-32 { height: 8.5svh; background: #d9efc8; }
 .broadcast-millionaire .np-ink { color: var(--stage-ink); }
 
 @media (min-aspect-ratio: 3/2) and (min-width: 850px) {
@@ -583,4 +583,20 @@
   border-color: #c6dbcc;
   background: #fffbed;
   box-shadow: 0 5px 0 #254f5515, 0 10px 24px #254f5510;
+}
+
+.broadcast--feud .np-survey li {
+  border: 1px solid #c6dbcc;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fffdf3, #e7f4fb);
+  box-shadow: 0 4px 0 #c5dbe4, 0 10px 18px #254f5514;
+  color: #254f55;
+}
+.broadcast--feud .np-survey li > span:first-child {
+  background: #8fd3f0;
+  color: #254f55;
+}
+.broadcast--feud .np-survey li > span:last-child {
+  background: #fbd475;
+  color: #254f55;
 }

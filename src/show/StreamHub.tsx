@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { schedule } from './catalog';
+import { BroadcastStageShell, needsStageShell } from './BroadcastStage';
 import { StreamAudienceQr, StreamBroadcastEffects, StreamInteractivePanel } from './StreamInteractive';
 
-type GameId = 'price' | 'feud' | 'wheel' | 'deal' | 'password' | 'millionaire';
+type GameId = typeof schedule[number]['id'];
 type RoomState = {
   gameId: GameId;
   live: boolean;
@@ -31,14 +33,7 @@ const DEFAULT_STATE: RoomState = {
   goalVisible: true,
   tiltifyOverlayUrl: '',
 };
-const lineup = [
-  { id: 'price', time: '2:00–3:00 PM', name: 'The Price Is Merry', icon: '🏷️' },
-  { id: 'feud', time: '3:00–4:00 PM', name: 'Holiday Family Feud', icon: '☃️' },
-  { id: 'wheel', time: '4:00–5:00 PM', name: 'Wheel of Winter', icon: '❄️' },
-  { id: 'deal', time: '5:00–6:00 PM', name: 'Deal or No Sleigh', icon: '🎁' },
-  { id: 'password', time: '6:00–7:00 PM', name: 'North Pole Password', icon: '🔑' },
-  { id: 'millionaire', time: '7:00–8:00 PM', name: 'Christmas Millionaire', icon: '⭐' },
-] as const;
+const lineup = schedule;
 const asGameId = (value: string): GameId => lineup.find(item => item.id === value)?.id ?? 'price';
 const hostPath = (id: GameId) => id === 'millionaire' ? '/hostjt' : '/games/' + id;
 const displayPath = (id: GameId) => id === 'millionaire' ? '/displayurl' : '/games/' + id + '?display=1';
@@ -107,7 +102,8 @@ function useClock(liveStartedAt: number | null) {
   const hours = Math.floor(remaining / 3600000) % 24;
   const minutes = Math.floor(remaining / 60000) % 60;
   const seconds = Math.floor(remaining / 1000) % 60;
-  const clock = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', second: '2-digit', timeZoneName: 'short' }).format(now);
+  const eastern = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }).format(now);
+  const clock = eastern.replace(/\s*(ET|EST|EDT)\s*$/i, '') + ' ET';
   const liveDuration = Math.max(0, now - (liveStartedAt ?? scheduleStart));
   const elapsed = Math.floor(liveDuration / 1000);
   const liveClock = [Math.floor(elapsed / 3600), Math.floor(elapsed / 60) % 60, elapsed % 60].map(part => String(part).padStart(2, '0')).join(':');
@@ -137,15 +133,29 @@ function ProducerRoom({ room, update }: { room: RoomState; update: (changes: Par
       <section className="studio-main">
         <div className="studio-welcome">
           <div><p className="studio-kicker">DECEMBER 18 · 2:00–8:00 PM ET</p><h1>Show control</h1><p className="studio-subtitle">Run the six-hour broadcast from one desk. This control room stays private; the display page is what goes on stream.</p></div>
-          <div className="studio-countdown"><span>{room.live ? 'ON AIR FOR' : clock.started ? 'SCHEDULED NOW' : 'COUNTDOWN'}</span><strong>{room.live ? clock.liveClock : clock.days + 'd ' + String(clock.hours).padStart(2, '0') + ':' + String(clock.minutes).padStart(2, '0') + ':' + String(clock.seconds).padStart(2, '0')}</strong><small>{room.live ? 'show clock · scheduled close 8 PM ET' : clock.started ? 'scheduled window · select Go live' : 'until December 18 at 2 PM ET'}</small></div>
+          <div className="studio-countdown"><span>{room.live ? 'ON AIR FOR' : clock.started ? 'SCHEDULED NOW' : 'COUNTDOWN'}</span><strong>{room.live ? clock.liveClock : clock.days + 'd ' + String(clock.hours).padStart(2, '0') + ':' + String(clock.minutes).padStart(2, '0') + ':' + String(clock.seconds).padStart(2, '0')}</strong><small>{room.live ? 'show clock · scheduled close 8:00 PM ET' : clock.started ? 'scheduled window · select Go live' : 'until December 18 at 2:00 PM ET'}</small></div>
         </div>
+
+        <section className="studio-lineup-card">
+          <div className="studio-card-title"><div><p className="studio-kicker">DECEMBER 18 LINEUP</p><h2>Six games</h2></div></div>
+          <div className="studio-lineup">
+            {lineup.map((item, index) => (
+              <button key={item.id} type="button" className={'studio-lineup-item' + (item.id === room.gameId ? ' is-selected' : '')} onClick={() => update({ gameId: item.id, standby: false })}>
+                <span className="studio-lineup-index">{String(index + 1).padStart(2, '0')}</span>
+                <span className="studio-lineup-icon" aria-hidden="true">{item.icon}</span>
+                <span className="studio-lineup-copy"><strong>{item.name}</strong><small>{item.time}</small></span>
+                <span className="studio-lineup-status">{item.id === room.gameId ? 'NOW' : 'READY'}</span>
+              </button>
+            ))}
+          </div>
+        </section>
 
         <div className="studio-stage-card">
           <div className="studio-card-head">
             <div><p className="studio-kicker">CURRENT SEGMENT · {active.time}</p><h2>{active.icon} {active.name}</h2></div>
             <label className="studio-select-label">Now playing
               <select value={room.gameId} onChange={event => update({ gameId: asGameId(event.target.value), standby: false })}>
-                {lineup.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+                {lineup.map(item => <option key={item.id} value={item.id}>{item.name} · {item.time}</option>)}
               </select>
             </label>
           </div>
@@ -204,12 +214,13 @@ function ProducerRoom({ room, update }: { room: RoomState; update: (changes: Par
 function StreamDisplay({ room }: { room: RoomState }) {
   const active = lineup.find(item => item.id === room.gameId) ?? lineup[0];
   const percent = Math.max(0, Math.min(100, room.goal ? room.raised / room.goal * 100 : 0));
+  if (needsStageShell()) return <BroadcastStageShell />;
 
   return <main className={"stream-display stream-display-" + room.gameId}>
     
     <div className="stream-display-game">
       {room.standby
-        ? <div className="stream-standby"><span>✦</span><p>JASON TORRES PRESENTS</p><h1>Christmas Game Night</h1><div className="stream-standby-rule" /><strong>DECEMBER 18 · 2–8 PM EASTERN</strong><small>Six games. One very merry fundraiser.</small></div>
+        ? <div className="stream-standby"><span>✦</span><p>JASON TORRES PRESENTS</p><h1>Christmas Game Night</h1><div className="stream-standby-rule" /><strong>DECEMBER 18 · 2:00–8:00 PM ET</strong><small>Six games. One very merry fundraiser.</small></div>
         : <iframe key={room.gameId} src={displayPath(room.gameId)} title={active.name + ' broadcast view'} />}
     </div>
 
